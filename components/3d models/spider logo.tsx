@@ -1,5 +1,5 @@
 "use client";
-import { useGLTF, useScroll } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { Mesh } from "three";
@@ -18,8 +18,8 @@ export default function SpiderLogo() {
   return (
     <mesh
       ref={logoRef}
-      scale={[0.015, 0.015, 0.015]}
-      position={[0, 0.4, 0.6]}
+      scale={[1, 1, 1]}
+      position={[0, 0, 0]}
     >
       <primitive object={scene} />
     </mesh>

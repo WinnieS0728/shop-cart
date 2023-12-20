@@ -1,15 +1,19 @@
 "use client";
-import {
-  Html,
-  PresentationControls,
-  Scroll,
-  ScrollControls,
-} from "@react-three/drei";
-import React, { Suspense, useEffect, useRef, useState } from "react";
-import { Group } from "three";
+import { Html, Scroll, ScrollControls } from "@react-three/drei";
+import React, { Suspense, useRef } from "react";
+import { Group, Mesh } from "three";
 import SpiderLogo from "./spider logo";
 import SpotMan from "./spot man";
-import SpiderMan from "./spider man";
+import gsap from "gsap";
+import {
+  MotionValue,
+  SpringOptions,
+  motionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import { motion } from "framer-motion-3d";
+import { MeshProps, useFrame } from "@react-three/fiber";
 
 function CanvasLoader() {
   return (
@@ -18,46 +22,53 @@ function CanvasLoader() {
     </Html>
   );
 }
+interface props {
+  scrollYProgress: MotionValue<number>;
+}
 
-export default function Scene() {
-  const groupRef = useRef<Group>(null);
-  const [rotation, setRotation] = useState<number>(0);
+export default function Scene({ scrollYProgress }: props) {
+  const options: SpringOptions = {
+    damping: 25,
+  };
+  const positionY = useTransform(scrollYProgress, [0, 1], [-1, -1.15]);
+  const positionZ = useTransform(scrollYProgress, [0, 1], [0, 4.25]);
 
-  useEffect(() => {
-    document.addEventListener("mousemove", handlePointerMove);
+  const spotmanRef = useRef<MeshProps>(null);
 
-    return () => {
-      document.removeEventListener("mousemove", handlePointerMove);
-    };
-  }, []);
+  const pointerPosition = {
+    x: useSpring(motionValue(0), options),
+    y: useSpring(motionValue(0), options),
+  };
 
-  function handlePointerMove(e: MouseEvent) {
-    const percent = ((e.x - innerWidth / 2) / innerWidth) * 100;
-    // * transform [50,50] to [0.05,0.05]
-    const rotation = percent / 1000;
-    setRotation(rotation);
-  }
+  useFrame((state) => {
+    const {
+      pointer: { x, y },
+    } = state;
+
+    pointerPosition.x.set(x);
+    pointerPosition.y.set(y);
+  });
+
+  const rx = useTransform(pointerPosition.y, [-1, 1], [0.05, -0.05]);
+  const ry = useTransform(pointerPosition.x, [-1, 1], [-0.1, 0.1]);
+
+  const rotationX = 
+    useTransform(() => rx.get() * (1 - scrollYProgress.get()))
+  const rotationY =
+    useTransform(() => ry.get() * (1 - scrollYProgress.get()))
 
   return (
     <>
       <directionalLight intensity={5} />
-      <ambientLight intensity={0.1} />
 
       <Suspense fallback={<CanvasLoader />}>
-        <PresentationControls
-          polar={[0, 0]}
-          azimuth={[-0.05, 0.05]}
-          rotation={[0, rotation, 0]}
-          cursor={false}
+        <motion.mesh
+          position={[0, positionY, positionZ]}
+          rotation={[rotationX, rotationY, 0]}
+          ref={spotmanRef}
         >
-          {/* <ScrollControls pages={5}>
-            <group ref={groupRef}>
-              <SpotMan />
-              <SpiderLogo />
-            </group>
-          </ScrollControls> */}
-          <SpiderMan />
-        </PresentationControls>
+          <SpotMan />
+        </motion.mesh>
       </Suspense>
     </>
   );

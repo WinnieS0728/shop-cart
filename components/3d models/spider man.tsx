@@ -100,26 +100,15 @@ export default function SpiderMan() {
   const spidermanRef = useRef<Mesh>(null);
   const { scene, animations } = useGLTF("/3d models/spider man.glb");
   const { actions } = useAnimations(animations, spidermanRef);
-  const nowAction = useRef<(typeof spider_animation)[number]["key"] | null>(
-    null
-  );
 
   const spiderAnimation = useCallback(
     (animationName: (typeof spider_animation)[number]["name"]) => {
       const targetAnimation = spider_animation.find(
         (animation) => animation.name === animationName
       ) as (typeof spider_animation)[number];
-      if (nowAction.current) {
-        actions[nowAction.current]?.stop();
-      }
 
-      if (targetAnimation.loop) {
-        actions[targetAnimation.key]?.fadeIn(0.5).play();
-      } else {
-        actions[targetAnimation.key]?.fadeIn(0.5).setLoop(2200, 1).play();
-      }
-
-      nowAction.current = targetAnimation.key;
+      actions[targetAnimation.key]?.fadeOut(0.5);
+      actions[targetAnimation.key]?.reset().fadeIn(0.5).play();
     },
     [actions]
   );
