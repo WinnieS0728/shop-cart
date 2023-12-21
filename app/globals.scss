@@ -2,10 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
-    .no-scrollbar {
-        ::-webkit-scrollbar {
-            width: 0;
-        }
-    }
+@layer base {
+  ::-webkit-scrollbar {
+    // width: 0;
+  }
 }
