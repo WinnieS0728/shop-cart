@@ -45,8 +45,8 @@ export default function Scene({ scrollYProgress }: props) {
   const spotmanRef = useRef<GroupProps>(null);
 
   const pointerPosition = {
-    x: useSpring(motionValue(0), options),
-    y: useSpring(motionValue(0), options),
+    x: useSpring(0, options),
+    y: useSpring(0, options),
   };
 
   const zoom = useTransform(scrollYProgress, [0, 1], [5, 10]);
