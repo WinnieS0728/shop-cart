@@ -20,7 +20,9 @@ export default function RootLayout({
     <html lang='en'>
       <body>
         <SmoothScrollProvider>
-          <EdgeStoreProvider>{children}</EdgeStoreProvider>
+          {/* <EdgeStoreProvider> */}
+          {children}
+          {/* </EdgeStoreProvider> */}
         </SmoothScrollProvider>
       </body>
     </html>

@@ -18,6 +18,7 @@ import {
   MotionValue,
   SpringOptions,
   motionValue,
+  useMotionValue,
   useSpring,
   useTransform,
 } from "framer-motion";
@@ -45,8 +46,8 @@ export default function Scene({ scrollYProgress }: props) {
   const spotmanRef = useRef<GroupProps>(null);
 
   const pointerPosition = {
-    x: useSpring(0, options),
-    y: useSpring(0, options),
+    x: useMotionValue(0),
+    y: useMotionValue(0),
   };
 
   const zoom = useTransform(scrollYProgress, [0, 1], [5, 10]);
@@ -69,6 +70,9 @@ export default function Scene({ scrollYProgress }: props) {
   const rotationX = useTransform(() => rx.get() * (1 - scrollYProgress.get()));
   const rotationY = useTransform(() => ry.get() * (1 - scrollYProgress.get()));
 
+  const springX = useSpring(rotationX, options)
+  const springY = useSpring(rotationY,options)
+
   return (
     <>
       <directionalLight intensity={5} />
@@ -76,7 +80,7 @@ export default function Scene({ scrollYProgress }: props) {
       <Suspense fallback={<CanvasLoader />}>
         <motion.group
           position={[0, positionY, positionZ]}
-          rotation={[rotationX, rotationY, 0]}
+          rotation={[springX, springY, 0]}
           ref={spotmanRef}
         >
           <SpotMan />

@@ -9,7 +9,7 @@ export default function Page() {
       <section className='border-4 p-4'>
         <h3>create</h3>
         <div className='flex gap-4'>
-          <ImageDropzone />
+          {/* <ImageDropzone /> */}
         </div>
       </section>
     </main>
