@@ -22,6 +22,9 @@ export default {
           '900': '#660202',
           '950': '#420101'
         }
+      },
+      aspectRatio: {
+        'image': '3/4'
       }
     }
   },

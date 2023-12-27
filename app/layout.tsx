@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.scss";
 import SmoothScrollProvider from "@/providers/smooth scroll";
+import { EdgeStoreProvider } from "@/libs/edgestore";
 
 export const metadata: Metadata = {
   title: {
@@ -18,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body>
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <SmoothScrollProvider>
+          <EdgeStoreProvider>{children}</EdgeStoreProvider>
+        </SmoothScrollProvider>
       </body>
     </html>
   );

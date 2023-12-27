@@ -1,11 +1,17 @@
-import IntroSection from "@/components/main page/intro section";
-import TitleSection from "@/components/main page/title section";
+"use client";
+import ImageDropzone from "@/components/create product/ImageDropzone";
+import React from "react";
 
-export default function HomePage() {
+export default function Page() {
+
   return (
-    <main>
-      <IntroSection />
-      <TitleSection />
+    <main className='flex gap-4'>
+      <section className='border-4 p-4'>
+        <h3>create</h3>
+        <div className='flex gap-4'>
+          <ImageDropzone />
+        </div>
+      </section>
     </main>
   );
 }
