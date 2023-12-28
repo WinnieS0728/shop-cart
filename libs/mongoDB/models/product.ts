@@ -1,10 +1,10 @@
 import { Schema, model } from "mongoose";
 import { z } from "zod";
 
-const product_schema = z.object({
+export const product_schema = z.object({
     title: z.string(),
     content: z.string(),
-    category: z.string(),
+    category: z.array(z.string()),
     price: z.number(),
     stock: z.number(),
     imageUrl: z.string(),
@@ -19,7 +19,7 @@ const productModel = new Schema<z.infer<typeof product_schema>>({
         type: String
     },
     category: {
-        type: String
+        type: [String]
     },
     price: {
         type: Number

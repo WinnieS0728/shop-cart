@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import "./globals.scss";
 import SmoothScrollProvider from "@/providers/smooth scroll";
 import { EdgeStoreProvider } from "@/libs/edgestore";
+import { ToastContainer } from "react-toastify";
+
+
+import 'react-toastify/dist/ReactToastify.css';
+import "./globals.scss";
 
 export const metadata: Metadata = {
   title: {
@@ -17,12 +21,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='en'>
+    <html lang="en">
       <body>
         <SmoothScrollProvider>
-          {/* <EdgeStoreProvider> */}
-          {children}
-          {/* </EdgeStoreProvider> */}
+          <EdgeStoreProvider>
+            {children}
+            <ToastContainer
+              position="top-center"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+            />
+          </EdgeStoreProvider>
         </SmoothScrollProvider>
       </body>
     </html>

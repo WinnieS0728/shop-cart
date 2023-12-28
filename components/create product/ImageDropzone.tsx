@@ -4,32 +4,50 @@ import { cn } from "@/libs/tailwind/cn";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { UseFormSetValue } from "react-hook-form";
+import { product_schema } from "@/libs/mongoDB/models/product";
+import { z } from "zod";
+import { ProgressBar } from "../UI/progress bar";
 
-export default function ImageDropzone() {
+
+interface props {
+  setImageUrl: UseFormSetValue<z.infer<typeof product_schema>>;
+}
+export default function ImageDropzone({
+  setImageUrl,
+}: props) {
   const [file, setFile] = useState<File>();
   const [url, setUrl] = useState<string>("");
+  const [progress, setProgress] = useState<number>(0);
 
   const { edgestore } = useEdgeStore();
+
+  async function uploadImage(file: File) {
+    const res = await edgestore.publicImages.upload({
+      file,
+      onProgressChange: (progress) => {
+        setProgress(progress);
+      },
+      options: {
+        temporary: true,
+      },
+    });
+    return res;
+  }
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
       accept: {
         "image/*": [".png", ".jpeg", ".webp", ".svg"],
       },
+      maxSize: 1024 * 1024 * 5, // @ 5MB
       onDrop: async (file) => {
         if (file[0]) {
-          const res = await edgestore.publicImages.upload({
-            file: file[0],
-            onProgressChange: (progress) => {
-              console.log(progress);
-            },
-            options: {
-              temporary: true,
-            },
-          });
-          console.log(res);
+          const objectUrl = URL.createObjectURL(file[0]);
+          setUrl(objectUrl);
           setFile(file[0]);
-          setUrl(res.url);
+          const { url } = await uploadImage(file[0]);
+          setImageUrl("imageUrl", url);
         }
       },
     });
@@ -46,16 +64,16 @@ export default function ImageDropzone() {
   }, [isDragAccept, isDragReject]);
 
   return (
-    <div className='relative'>
+    <div className="relative">
       <div
         className={cn(
-          "border w-full min-w-40 aspect-image flex justify-center items-center p-8 cursor-pointer max-w-60",
+          "flex aspect-image w-60 cursor-pointer items-center justify-center  gap-2 border p-8",
           {
             "border-red-500": isDragReject,
             "border-green-500": isDragAccept,
             "border-blue-500": isFocused,
             "p-0": file,
-          }
+          },
         )}
         {...getRootProps()}
       >
@@ -63,8 +81,8 @@ export default function ImageDropzone() {
         {file ? (
           <Image
             src={url}
-            className='w-full aspect-image object-contain'
-            alt='image'
+            className="aspect-image w-full object-contain"
+            alt="image"
             width={300}
             height={400}
             priority
@@ -73,14 +91,16 @@ export default function ImageDropzone() {
             }}
           />
         ) : (
-          <p className='whitespace-nowrap'>{text}</p>
+          <p className="whitespace-nowrap">{text}</p>
         )}
       </div>
+      <ProgressBar progress={progress} />
       <button
-        type='button'
-        className='absolute -top-2 -right-2 w-8 aspect-square rounded-full bg-red-500 text-white'
+        type="button"
+        className="absolute -right-2 -top-2 aspect-square w-8 rounded-full bg-red-500 text-white"
         onClick={() => {
           setFile(undefined);
+          setProgress(0);
         }}
       >
         X
