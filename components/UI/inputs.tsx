@@ -1,11 +1,11 @@
-import { product_schema } from "@/libs/mongoDB/models/product";
-import { ReactNode } from "react";
+import React, {
+  InputHTMLAttributes,
+  ReactNode,
+} from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { z } from "zod";
 
-interface inputProps {
-  name: keyof z.infer<typeof product_schema>;
-  placeholder?: string;
+interface inputProps extends InputHTMLAttributes<HTMLInputElement> {
+  name: string;
   error?: string;
 }
 export function Label({
@@ -26,13 +26,13 @@ export function Label({
           )}
           {label}
         </p>
-        <div className="ps-4 w-full">{children}</div>
+        <div className="w-full ps-4">{children}</div>
       </label>
     </>
   );
 }
 
-export function InputText({ name, placeholder, error }: inputProps) {
+export function InputText({ name, placeholder, error, ...props }: inputProps) {
   const { control } = useFormContext();
   return (
     <Controller
@@ -40,14 +40,19 @@ export function InputText({ name, placeholder, error }: inputProps) {
       name={name}
       render={({ field }) => (
         <>
-          <input {...field} autoComplete="off" placeholder={placeholder} />
+          <input
+            {...field}
+            {...props}
+            autoComplete="off"
+            placeholder={placeholder}
+          />
           {error && <p className="text-sm text-red-500">*{error}</p>}
         </>
       )}
     />
   );
 }
-export function InputOnlyNumber({ name, error }: inputProps) {
+export function InputOnlyNumber({ name, error, ...props }: inputProps) {
   const { control } = useFormContext();
   return (
     <>
@@ -58,6 +63,7 @@ export function InputOnlyNumber({ name, error }: inputProps) {
           <>
             <input
               {...field}
+              {...props}
               onClick={(event) => {
                 (event.target as HTMLInputElement).value = "";
               }}
@@ -79,6 +85,24 @@ export function InputOnlyNumber({ name, error }: inputProps) {
         )}
       />
       {error && <p className="text-sm text-red-500">*{error}</p>}
+    </>
+  );
+}
+
+export function InputPassword({ name }: inputProps) {
+  const { control } = useFormContext();
+
+  return (
+    <>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <>
+            <input type="password" {...field} autoComplete="off" />
+          </>
+        )}
+      />
     </>
   );
 }

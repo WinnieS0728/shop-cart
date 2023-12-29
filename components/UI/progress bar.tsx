@@ -1,4 +1,4 @@
-import { cn } from "@/libs/tailwind/cn";
+import { cn } from "@/libs/utils/cn";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect } from "react";
 import * as icons from "@icons";

@@ -1,6 +1,6 @@
 "use client";
 import { useEdgeStore } from "@/libs/edgestore";
-import { cn } from "@/libs/tailwind/cn";
+import { cn } from "@/libs/utils/cn";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";

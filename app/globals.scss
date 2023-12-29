@@ -7,6 +7,10 @@
   //   width: 0;
   // }
 
+  *{
+    box-sizing: border-box;
+  }
+
   input {
     @apply w-full rounded-sm border px-3 py-2;
 

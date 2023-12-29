@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Props } from "react-select";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
 
@@ -44,8 +43,8 @@ export function ReactSelect(props: Parameters<Select>[0]) {
         <Select
           {...props}
           className="w-full"
-          closeMenuOnSelect={false}
-          menuPosition="fixed"
+          closeMenuOnSelect={props.isMulti ? false : true}
+          // menuPosition="fixed"
         />
       ) : (
         <FakeReactSelect />
