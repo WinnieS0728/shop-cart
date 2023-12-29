@@ -1,6 +1,7 @@
 // "use client";
 import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import ImageDropzone from "./ImageDropzone";
 import { z } from "zod";
 import { product_schema } from "@/libs/mongoDB/models/product";
@@ -12,46 +13,56 @@ export default function CreateProductForm() {
   const { edgestore } = useEdgeStore();
 
   const methods = useForm<z.infer<typeof product_schema>>({
+    resolver: zodResolver(product_schema),
+    criteriaMode: "all",
     defaultValues: {
       title: "",
       content: "",
       category: [],
       price: 0,
       stock: 0,
+      sold: 0,
       imageUrl: "",
       tags: [],
     },
   });
 
-  const { handleSubmit, setValue, watch, control } = methods;
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    control,
+    formState: { errors, isSubmitting },
+  } = methods;
 
   function getIsImageUploadDone() {
     return !!watch("imageUrl");
   }
 
   async function onSubmit(data: z.infer<typeof product_schema>) {
-    const request = new Promise(async (resolve, reject) => {
-      const res = await fetch("/api/mongoDB/products", {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    console.log(data);
+    // const request = new Promise(async (resolve, reject) => {
+    //   const res = await fetch("/api/mongoDB/products", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-type": "application/json",
+    //     },
+    //     body: JSON.stringify(data),
+    //   });
 
-      await confirmImageUpload(data.imageUrl);
-      if (res.ok) {
-        resolve(true);
-      } else {
-        reject(false);
-      }
-    });
+    //   await confirmImageUpload(data.imageUrl);
+    //   if (res.ok) {
+    //     resolve(true);
+    //   } else {
+    //     reject(false);
+    //   }
+    // });
 
-    toast.promise(request, {
-      pending: "建立中...",
-      success: "建立完成",
-      error: "建立失敗",
-    });
+    // toast.promise(request, {
+    //   pending: "建立中...",
+    //   success: "建立完成",
+    //   error: "建立失敗",
+    // });
   }
 
   async function confirmImageUpload(url: string) {
@@ -60,84 +71,47 @@ export default function CreateProductForm() {
     });
   }
 
-  const categoryOptions = ["a", "b", "c"].map((category) => ({
-    label: category,
-    value: category,
-  }));
-
-  const asyncOptions = async (inputValue: string) => {
-    return new Promise<{ label: string; value: string }[]>((resolve) => {
-      setTimeout(() => {
-        resolve(
-          ["a", "b", "c"].map((category) => ({
-            label: category,
-            value: category,
-          })),
-        );
-      }, 3000);
-    });
-  };
-
   return (
     <>
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex items-center justify-center gap-4 w-full"
+        >
           <ImageDropzone setImageUrl={setValue} />
-          <div className="flex w-full flex-col">
-            <Label label="產品名稱">
-              <InputText name="title" />
+          <div className="flex w-full flex-col gap-2">
+            <Label label="產品名稱" required>
+              <InputText name="title" error={errors.title?.message} />
             </Label>
             <Label label="產品內容">
-              <InputText name="content" />
+              <InputText name="content" error={errors.content?.message} />
             </Label>
             <Label label="產品分類">
               <Controller
                 control={control}
                 name="category"
-                render={({ field: { onChange } }) => (
-                  <ReactSelect
-                    options={categoryOptions}
-                    onChange={(options) => {
-                      onChange(
-                        (options as typeof categoryOptions).map(
-                          (option) => option.value,
-                        ),
-                      );
-                    }}
-                    isMulti
-                  />
-                )}
+                render={({ field: { onChange } }) => <ReactSelect isMulti />}
               />
             </Label>
-            <Label label="價格">
-              <InputOnlyNumber name="price" />
+            <Label label="價格" required>
+              <InputOnlyNumber name="price" error={errors.price?.message} />
             </Label>
-            <Label label="庫存">
-              <InputOnlyNumber name="stock" />
+            <Label label="庫存" required>
+              <InputOnlyNumber name="stock" error={errors.stock?.message} />
             </Label>
             <Label label="標籤">
               <Controller
                 control={control}
                 name="tags"
                 render={({ field: { onChange } }) => (
-                  <ReactAsyncSelect
-                    loadOptions={asyncOptions}
-                    onChange={(options) => {
-                      onChange(
-                        (
-                          options as Awaited<ReturnType<typeof asyncOptions>>
-                        ).map((option) => option.value),
-                      );
-                    }}
-                    isMulti
-                  />
+                  <ReactAsyncSelect isMulti />
                 )}
               />
             </Label>
             <input
               type="submit"
               value="send"
-              disabled={!getIsImageUploadDone()}
+              // disabled={isSubmitting || !getIsImageUploadDone()}
             />
           </div>
         </form>

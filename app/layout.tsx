@@ -6,6 +6,7 @@ import { ToastContainer } from "react-toastify";
 
 import 'react-toastify/dist/ReactToastify.css';
 import "./globals.scss";
+import Header from "@/components/layouts/header";
 
 export const metadata: Metadata = {
   title: {
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body>
         <SmoothScrollProvider>
           <EdgeStoreProvider>
+            <Header />
             {children}
             <ToastContainer
               position="top-center"
