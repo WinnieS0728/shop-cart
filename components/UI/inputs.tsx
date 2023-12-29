@@ -1,8 +1,6 @@
-import React, {
-  InputHTMLAttributes,
-  ReactNode,
-} from "react";
+import React, { InputHTMLAttributes, ReactNode, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import { eye } from "@icons";
 
 interface inputProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -89,8 +87,10 @@ export function InputOnlyNumber({ name, error, ...props }: inputProps) {
   );
 }
 
-export function InputPassword({ name }: inputProps) {
+export function InputPassword({ name, ...props }: inputProps) {
   const { control } = useFormContext();
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   return (
     <>
@@ -98,9 +98,26 @@ export function InputPassword({ name }: inputProps) {
         control={control}
         name={name}
         render={({ field }) => (
-          <>
-            <input type="password" {...field} autoComplete="off" />
-          </>
+          <div className="flex items-center justify-center gap-2">
+            <input
+              type={showPassword ? "text" : "password"}
+              {...field}
+              autoComplete="off"
+              {...props}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setShowPassword((prev) => !prev);
+              }}
+            >
+              {showPassword ? (
+                <eye.open className="text-xl" />
+              ) : (
+                <eye.close className="text-xl" />
+              )}
+            </button>
+          </div>
         )}
       />
     </>

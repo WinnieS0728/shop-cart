@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { InputText, Label } from "../UI/inputs";
+import { InputPassword, InputText, Label } from "../UI/inputs";
 import { user_schema } from "@/libs/mongoDB/models/user";
 import { z } from "zod";
 import { creditCard } from "../UI/credit card";
@@ -36,24 +36,26 @@ export default function UpdateUserForm() {
     <>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {/* <Label label="姓名" required>
+          <Label label="姓名" required>
             <InputText name="username" />
           </Label>
           <Label label="email" required>
             <InputText name="email" />
           </Label>
           <Label label="密碼" required>
-            <InputText name="password" />
+            <InputPassword name="password" />
           </Label>
           <Label label="電話" required>
             <InputText name="phone" />
           </Label>
           <Label label="地址" required>
             <InputText name="address" />
-          </Label> */}
-          {/* <creditCard.CardNumber /> */}
-          <creditCard.Expiration_date />
-          {/* <creditCard.SecurityCode /> */}
+          </Label>
+          <div className="flex flex-col gap-2">
+            <creditCard.CardNumber />
+            <creditCard.Expiration_date />
+            <creditCard.SecurityCode />
+          </div>
           <input type="submit" value="send" />
         </form>
       </FormProvider>

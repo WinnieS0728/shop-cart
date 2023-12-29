@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useFormContext, useWatch, Controller } from "react-hook-form";
 import ReactSelect from "react-select";
+import { InputPassword } from "./inputs";
 
 function CardNumber() {
   const { control, register, setFocus, setValue } = useFormContext();
@@ -69,6 +70,7 @@ function CardNumber() {
       >
         <input
           type="text"
+          className="max-w-16 text-center"
           {...register("payment.cardNumber.0")}
           onChange={(event) => {
             const input = (event.target as HTMLInputElement).value;
@@ -81,6 +83,7 @@ function CardNumber() {
         <span>-</span>
         <input
           type="text"
+          className="max-w-16 text-center"
           {...register("payment.cardNumber.1")}
           onChange={(event) => {
             const input = (event.target as HTMLInputElement).value;
@@ -93,6 +96,7 @@ function CardNumber() {
         <span>-</span>
         <input
           type="text"
+          className="max-w-16 text-center"
           {...register("payment.cardNumber.2")}
           onChange={(event) => {
             const input = (event.target as HTMLInputElement).value;
@@ -105,6 +109,7 @@ function CardNumber() {
         <span>-</span>
         <input
           type="text"
+          className="max-w-16 text-center"
           {...register("payment.cardNumber.3")}
           onChange={(event) => {
             const input = (event.target as HTMLInputElement).value;
@@ -154,7 +159,7 @@ function Expiration_date() {
   return (
     <>
       <div className="flex items-center justify-center gap-2">
-        {/* <Controller
+        <Controller
           control={control}
           name="payment.expiration_date.0"
           render={({ field: { onChange } }) => (
@@ -166,7 +171,7 @@ function Expiration_date() {
               }}
             />
           )}
-        /> */}
+        />
         <span>/</span>
         <Controller
           control={control}
@@ -187,9 +192,15 @@ function Expiration_date() {
 }
 
 function SecurityCode() {
-  const { register } = useFormContext();
-
-  return <></>;
+  return (
+    <>
+      <InputPassword
+        name="payment.security_code"
+        maxLength={3}
+        className="max-w-16 text-center"
+      />
+    </>
+  );
 }
 
 export const creditCard = {

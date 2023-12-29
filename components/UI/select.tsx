@@ -1,6 +1,16 @@
+import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
-import Select from "react-select";
-import AsyncSelect from "react-select/async";
+import SelectType from "react-select";
+import AsyncSelectType from "react-select/async";
+
+const Select = dynamic(() => import("react-select"), {
+  ssr: false,
+  loading: () => <FakeReactSelect />,
+});
+const AsyncSelect = dynamic(() => import("react-select/async"), {
+  ssr: false,
+  loading: () => <FakeReactSelect />,
+});
 
 function FakeReactSelect({
   placeholder = "Select...",
@@ -35,7 +45,7 @@ function useClient() {
   return isClient;
 }
 
-export function ReactSelect(props: Parameters<Select>[0]) {
+export function ReactSelect(props: Parameters<SelectType>[0]) {
   const isClient = useClient();
   return (
     <>
@@ -53,7 +63,7 @@ export function ReactSelect(props: Parameters<Select>[0]) {
   );
 }
 
-export function ReactAsyncSelect(props: Parameters<AsyncSelect>[0]) {
+export function ReactAsyncSelect(props: Parameters<AsyncSelectType>[0]) {
   const isClient = useClient();
 
   return (
