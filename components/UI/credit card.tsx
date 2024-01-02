@@ -1,10 +1,26 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { useFormContext, useWatch, Controller } from "react-hook-form";
-import ReactSelect from "react-select";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  ReactNode,
+} from "react";
+import {
+  useFormContext,
+  useWatch,
+  Controller,
+  FieldError,
+  FieldErrorsImpl,
+  Merge,
+} from "react-hook-form";
+
 import { InputPassword } from "./inputs";
+import { ReactSelect } from "./select";
+import { cn } from "@/libs/utils/cn";
 
 function CardNumber() {
-  const { control, register, setFocus, setValue } = useFormContext();
+  const { control, setFocus, register, setValue } = useFormContext();
   const [isTyping, setIsTyping] = useState(true);
   const [input1, input2, input3, input4] = useWatch({
     control,
@@ -64,60 +80,89 @@ function CardNumber() {
 
   return (
     <>
-      <div
-        ref={cardNumberRef}
-        className="flex items-center justify-center gap-2"
-      >
-        <input
-          type="text"
-          className="max-w-16 text-center"
-          {...register("payment.cardNumber.0")}
-          onChange={(event) => {
-            const input = (event.target as HTMLInputElement).value;
-            const value = input.replace(/[^0-9]/gi, "");
-            setValue("payment.cardNumber.0", value);
-          }}
-          maxLength={4}
-          autoComplete="off"
+      <div ref={cardNumberRef} className="flex items-center gap-1">
+        <Controller
+          control={control}
+          name="payment.cardNumber.0"
+          render={({ field: { onChange } }) => (
+            <input
+              type="text"
+              id="creditCard"
+              className="w-20 text-center"
+              placeholder="XXXX"
+              {...register("payment.cardNumber.0")}
+              onChange={(event) => {
+                const input = (event.target as HTMLInputElement).value;
+                const value = input.replace(/[^0-9]/gi, "");
+                onChange(value);
+              }}
+              maxLength={4}
+              autoComplete="off"
+            />
+          )}
         />
+
         <span>-</span>
-        <input
-          type="text"
-          className="max-w-16 text-center"
-          {...register("payment.cardNumber.1")}
-          onChange={(event) => {
-            const input = (event.target as HTMLInputElement).value;
-            const value = input.replace(/[^0-9]/gi, "");
-            setValue("payment.cardNumber.1", value);
-          }}
-          maxLength={4}
-          autoComplete="off"
+        <Controller
+          control={control}
+          name="payment.cardNumber.1"
+          render={({ field: { onChange } }) => (
+            <input
+              type="text"
+              className="w-20 text-center"
+              placeholder="XXXX"
+              {...register("payment.cardNumber.1")}
+              onChange={(event) => {
+                const input = (event.target as HTMLInputElement).value;
+                const value = input.replace(/[^0-9]/gi, "");
+                onChange(value);
+              }}
+              maxLength={4}
+              autoComplete="off"
+            />
+          )}
         />
+
         <span>-</span>
-        <input
-          type="text"
-          className="max-w-16 text-center"
-          {...register("payment.cardNumber.2")}
-          onChange={(event) => {
-            const input = (event.target as HTMLInputElement).value;
-            const value = input.replace(/[^0-9]/gi, "");
-            setValue("payment.cardNumber.2", value);
-          }}
-          maxLength={4}
-          autoComplete="off"
+        <Controller
+          control={control}
+          name="payment.cardNumber.2"
+          render={({ field: { onChange } }) => (
+            <input
+              type="text"
+              className="w-20 text-center"
+              placeholder="XXXX"
+              {...register("payment.cardNumber.2")}
+              onChange={(event) => {
+                const input = (event.target as HTMLInputElement).value;
+                const value = input.replace(/[^0-9]/gi, "");
+                onChange(value);
+              }}
+              maxLength={4}
+              autoComplete="off"
+            />
+          )}
         />
+
         <span>-</span>
-        <input
-          type="text"
-          className="max-w-16 text-center"
-          {...register("payment.cardNumber.3")}
-          onChange={(event) => {
-            const input = (event.target as HTMLInputElement).value;
-            const value = input.replace(/[^0-9]/gi, "");
-            setValue("payment.cardNumber.3", value);
-          }}
-          maxLength={4}
-          autoComplete="off"
+        <Controller
+          control={control}
+          name="payment.cardNumber.3"
+          render={({ field: { onChange } }) => (
+            <input
+              type="text"
+              className="w-20 text-center"
+              placeholder="XXXX"
+              {...register("payment.cardNumber.3")}
+              onChange={(event) => {
+                const input = (event.target as HTMLInputElement).value;
+                const value = input.replace(/[^0-9]/gi, "");
+                onChange(value);
+              }}
+              maxLength={4}
+              autoComplete="off"
+            />
+          )}
         />
       </div>
     </>
@@ -158,31 +203,34 @@ function Expiration_date() {
 
   return (
     <>
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center gap-2">
         <Controller
           control={control}
           name="payment.expiration_date.0"
           render={({ field: { onChange } }) => (
             <ReactSelect
               instanceId={"payment.expiration_date.0"}
+              className="w-24"
               options={monthOption}
               onChange={(option) => {
                 onChange((option as { label: string; value: string }).value);
               }}
+              placeholder="MM"
             />
           )}
         />
-        <span>/</span>
         <Controller
           control={control}
           name="payment.expiration_date.1"
           render={({ field: { onChange } }) => (
             <ReactSelect
               instanceId={"payment.expiration_date.1"}
+              className="w-24"
               options={yearOption}
               onChange={(option) => {
                 onChange((option as { label: string; value: string }).value);
               }}
+              placeholder="YY"
             />
           )}
         />
@@ -192,19 +240,96 @@ function Expiration_date() {
 }
 
 function SecurityCode() {
+  const { control } = useFormContext();
   return (
     <>
-      <InputPassword
+      <Controller
+        control={control}
         name="payment.security_code"
-        maxLength={3}
-        className="max-w-16 text-center"
+        render={({ field: { onChange } }) => (
+          <InputPassword
+            name="payment.security_code"
+            maxLength={3}
+            className="max-w-16 text-center"
+            placeholder="***"
+            onChange={(event) => {
+              const input = (event.target as HTMLInputElement).value;
+              const value = input.replace(/[^0-9]/gi, "");
+              onChange(value);
+            }}
+          />
+        )}
       />
     </>
   );
 }
 
-export const creditCard = {
-  CardNumber,
-  Expiration_date,
-  SecurityCode,
-};
+function Card({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "aspect-video w-[30rem] rounded-xl border bg-slate-200 px-10 py-8",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+export function CreditCard({
+  error,
+}: {
+  error?:
+    | Merge<
+        FieldError,
+        FieldErrorsImpl<{
+          cardNumber: string[];
+          expiration_date: string[];
+          security_code: string;
+        }>
+      >
+    | undefined;
+}) {
+  // console.log(error);
+  return (
+    <>
+      <div className="relative aspect-video w-[40rem]">
+        <Card className="absolute left-0 top-0 z-10 flex flex-col justify-end drop-shadow-xl">
+          <div className="h-16 w-24 self-end bg-yellow-500">logo</div>
+          <div className="flex flex-col gap-4">
+            <div>
+              <p className="mb-2 uppercase">card number</p>
+              <CardNumber />
+              {error?.cardNumber && (
+                <p className="text-sm text-red-500">*卡號錯誤</p>
+              )}
+            </div>
+            <div>
+              <p className="mb-2 uppercase">exp. date</p>
+              <Expiration_date />
+              {error?.expiration_date && (
+                <p className="text-sm text-red-500">*到期日錯誤</p>
+              )}
+            </div>
+          </div>
+        </Card>
+        <Card className="absolute bottom-0 right-0 flex items-center justify-end">
+          <div className="absolute left-0 top-12 h-16 w-full bg-black/50"></div>
+          <div className="mt-12">
+            <p className="mb-2 uppercase">cvc</p>
+            <SecurityCode />
+            {error?.security_code && (
+              <p className="text-sm text-red-500">*安全碼錯誤</p>
+            )}
+          </div>
+        </Card>
+      </div>
+    </>
+  );
+}

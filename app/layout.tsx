@@ -8,6 +8,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import "./globals.scss";
 import Header from "@/components/layouts/header";
 
+import localFont from 'next/font/local'
+
+const myFont = localFont({
+  src: '../public/fonts/ChenYuluoyan-Thin.woff2'
+})
+
 export const metadata: Metadata = {
   title: {
     template: "%s | shop",
@@ -23,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={myFont.className}>
         <SmoothScrollProvider>
           <EdgeStoreProvider>
             <Header />

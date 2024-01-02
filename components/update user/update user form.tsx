@@ -1,14 +1,15 @@
 "use client";
-import React, { useRef } from "react";
+import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { InputPassword, InputText, Label } from "../UI/inputs";
+import { InputPassword, InputSubmit, InputText, Label } from "../UI/inputs";
 import { user_schema } from "@/libs/mongoDB/models/user";
 import { z } from "zod";
-import { creditCard } from "../UI/credit card";
-import { ReactSelect } from "../UI/select";
+import { CreditCard } from "../UI/credit card";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function UpdateUserForm() {
   const methods = useForm<z.infer<typeof user_schema>>({
+    resolver: zodResolver(user_schema),
     defaultValues: {
       username: "",
       email: "",
@@ -24,7 +25,6 @@ export default function UpdateUserForm() {
   });
   const {
     handleSubmit,
-    control,
     formState: { errors, isSubmitting },
   } = methods;
 
@@ -35,28 +35,49 @@ export default function UpdateUserForm() {
   return (
     <>
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Label label="姓名" required>
-            <InputText name="username" />
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="form-container flex flex-col gap-4"
+        >
+          <fieldset className="flex items-center justify-center gap-8">
+            <div className="circle-icon w-1/3 bg-red-500">avatar</div>
+            <div className="flex w-full flex-col gap-4">
+              <Label label="姓名" htmlFor="username" required>
+                <InputText
+                  name="username"
+                  id="username"
+                  error={errors.username?.message}
+                />
+              </Label>
+              <Label label="email" htmlFor="email" required>
+                <InputText
+                  name="email"
+                  id="email"
+                  error={errors.email?.message}
+                />
+              </Label>
+              <Label label="密碼" required htmlFor="password">
+                <InputPassword
+                  name="password"
+                  id="password"
+                  error={errors.password?.message}
+                />
+              </Label>
+            </div>
+          </fieldset>
+
+          <Label label="電話(選填)" htmlFor="phone">
+            <InputText name="phone" id="phone" />
           </Label>
-          <Label label="email" required>
-            <InputText name="email" />
+          <Label label="地址(選填)" htmlFor="address">
+            <InputText name="address" id="address" />
           </Label>
-          <Label label="密碼" required>
-            <InputPassword name="password" />
+          <Label label="付款方式(選填)" htmlFor="creditCard">
+            <div className="flex justify-center">
+              <CreditCard error={errors.payment} />
+            </div>
           </Label>
-          <Label label="電話" required>
-            <InputText name="phone" />
-          </Label>
-          <Label label="地址" required>
-            <InputText name="address" />
-          </Label>
-          <div className="flex flex-col gap-2">
-            <creditCard.CardNumber />
-            <creditCard.Expiration_date />
-            <creditCard.SecurityCode />
-          </div>
-          <input type="submit" value="send" />
+          <InputSubmit value="儲存" disabled={isSubmitting} />
         </form>
       </FormProvider>
     </>

@@ -3,29 +3,30 @@ import { Controller, useFormContext } from "react-hook-form";
 import { eye } from "@icons";
 
 interface inputProps extends InputHTMLAttributes<HTMLInputElement> {
-  name: string;
   error?: string;
 }
 export function Label({
   children,
   label,
   required,
+  htmlFor,
 }: {
   children: ReactNode;
   label: string;
   required?: boolean;
+  htmlFor?: string;
 }) {
   return (
     <>
-      <label className="flex flex-col items-start justify-center">
-        <p className="relative my-1 whitespace-pre">
+      <div className="flex w-full flex-col items-start justify-center">
+        <label className="relative my-1 whitespace-pre" htmlFor={htmlFor}>
           {required && (
             <span className="absolute -left-2 -top-1 text-red-500">*</span>
           )}
           {label}
-        </p>
+        </label>
         <div className="w-full ps-4">{children}</div>
-      </label>
+      </div>
     </>
   );
 }
@@ -35,7 +36,7 @@ export function InputText({ name, placeholder, error, ...props }: inputProps) {
   return (
     <Controller
       control={control}
-      name={name}
+      name={name!}
       render={({ field }) => (
         <>
           <input
@@ -56,7 +57,7 @@ export function InputOnlyNumber({ name, error, ...props }: inputProps) {
     <>
       <Controller
         control={control}
-        name={name}
+        name={name!}
         render={({ field }) => (
           <>
             <input
@@ -87,7 +88,7 @@ export function InputOnlyNumber({ name, error, ...props }: inputProps) {
   );
 }
 
-export function InputPassword({ name, ...props }: inputProps) {
+export function InputPassword({ name, error, ...props }: inputProps) {
   const { control } = useFormContext();
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -96,14 +97,14 @@ export function InputPassword({ name, ...props }: inputProps) {
     <>
       <Controller
         control={control}
-        name={name}
+        name={name!}
         render={({ field }) => (
           <div className="flex items-center justify-center gap-2">
             <input
               type={showPassword ? "text" : "password"}
               {...field}
-              autoComplete="off"
               {...props}
+              autoComplete="off"
             />
             <button
               type="button"
@@ -119,6 +120,19 @@ export function InputPassword({ name, ...props }: inputProps) {
             </button>
           </div>
         )}
+      />
+      {error && <p className="text-sm text-red-500">*{error}</p>}
+    </>
+  );
+}
+
+export function InputSubmit({ value }: inputProps) {
+  return (
+    <>
+      <input
+        type="submit"
+        value={value}
+        className="cursor-pointer rounded-md bg-yellow-500"
       />
     </>
   );

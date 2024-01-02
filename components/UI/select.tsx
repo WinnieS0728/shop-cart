@@ -1,26 +1,21 @@
-import dynamic from "next/dynamic";
+import { cn } from "@/libs/utils/cn";
 import React, { useEffect, useState } from "react";
-import SelectType from "react-select";
-import AsyncSelectType from "react-select/async";
-
-const Select = dynamic(() => import("react-select"), {
-  ssr: false,
-  loading: () => <FakeReactSelect />,
-});
-const AsyncSelect = dynamic(() => import("react-select/async"), {
-  ssr: false,
-  loading: () => <FakeReactSelect />,
-});
+import Select from "react-select";
+import AsyncSelect from "react-select/async";
 
 function FakeReactSelect({
   placeholder = "Select...",
-}: {
-  placeholder?: string;
-}) {
+  ...props
+}: Parameters<Select>[0] | Parameters<AsyncSelect>[0]) {
   return (
     <>
-      <div className="flex h-[38px] w-full rounded-[4px] border-[1px] border-[#cccccc]">
-        <p className="flex w-full items-center px-[10px] py-[2px] text-[#808080]">
+      <div
+        className={cn(
+          "flex h-[38px] w-full rounded-[4px] border-[1px] border-[#cccccc] bg-white",
+          props.className,
+        )}
+      >
+        <p className="flex w-full items-center px-[10px] py-[2px] text-[#808080] overflow-x-clip">
           {placeholder}
         </p>
         <div className="my-2 w-[1px] bg-[#cccccc]"></div>
@@ -45,25 +40,25 @@ function useClient() {
   return isClient;
 }
 
-export function ReactSelect(props: Parameters<SelectType>[0]) {
+export function ReactSelect(props: Parameters<Select>[0]) {
   const isClient = useClient();
   return (
     <>
       {isClient ? (
         <Select
           {...props}
-          className="w-full"
+          className={cn("w-full", props.className)}
           closeMenuOnSelect={props.isMulti ? false : true}
-          // menuPosition="fixed"
+          menuPlacement="auto"
         />
       ) : (
-        <FakeReactSelect />
+        <FakeReactSelect {...props} />
       )}
     </>
   );
 }
 
-export function ReactAsyncSelect(props: Parameters<AsyncSelectType>[0]) {
+export function ReactAsyncSelect(props: Parameters<AsyncSelect>[0]) {
   const isClient = useClient();
 
   return (
@@ -73,12 +68,12 @@ export function ReactAsyncSelect(props: Parameters<AsyncSelectType>[0]) {
           {...props}
           cacheOptions
           defaultOptions
-          className="w-full"
-          closeMenuOnSelect={false}
+          className={cn("w-full", props.className)}
+          closeMenuOnSelect={props.isMulti ? false : true}
           menuPosition="fixed"
         />
       ) : (
-        <FakeReactSelect />
+        <FakeReactSelect {...props} />
       )}
     </>
   );

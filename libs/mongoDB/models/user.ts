@@ -2,15 +2,15 @@ import { Schema, model } from "mongoose";
 import { z } from "zod";
 
 export const user_schema = z.object({
-    username: z.string(),
-    email: z.string().email(),
-    password: z.string(),
+    username: z.string().min(1, "請填入姓名"),
+    email: z.string().email('請填入正確 email 格式'),
+    password: z.string().min(1, "請填入密碼"),
     phone: z.string(),
     address: z.string(),
     payment: z.object({
-        cardNumber: z.array(z.string()),
-        expiration_date: z.array(z.string()),
-        security_code: z.string()
+        cardNumber: z.array(z.string().length(4, '卡號錯誤')),
+        expiration_date: z.array(z.string().length(2, '到期日錯誤')),
+        security_code: z.string().length(3, '安全碼錯誤')
     })
 })
 

@@ -8,13 +8,13 @@ export default function layout({ children }: { children: ReactNode }) {
         <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/"}>
           profile
         </Link>
-        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/"}>
+        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/setting"}>
           setting
         </Link>
-        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/"}>
+        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/menu"}>
           menu
         </Link>
-        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/"}>
+        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/order"}>
           order
         </Link>
       </nav>
