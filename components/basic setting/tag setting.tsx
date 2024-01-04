@@ -6,14 +6,14 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { categoriesSetting_Schema } from "@/libs/mongoDB/models/basic setting/category";
+import { tagSetting_Schema } from "@/libs/mongoDB/models/basic setting/tag";
 
-export default function CategorySetting() {
-  const methods = useForm<z.infer<typeof categoriesSetting_Schema>>({
-    resolver: zodResolver(categoriesSetting_Schema),
+export default function TagsSetting() {
+  const methods = useForm<z.infer<typeof tagSetting_Schema>>({
+    resolver: zodResolver(tagSetting_Schema),
     shouldUnregister: true,
     defaultValues: {
-      categories: [],
+      tags: [],
     },
   });
 
@@ -21,10 +21,10 @@ export default function CategorySetting() {
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "categories",
+    name: "tags",
   });
 
-  async function onSubmit(data: z.infer<typeof categoriesSetting_Schema>) {
+  async function onSubmit(data: z.infer<typeof tagSetting_Schema>) {
     console.log(data);
   }
   return (
@@ -34,10 +34,10 @@ export default function CategorySetting() {
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-2"
         >
-          <h3 className="mb-4 text-xl">商品類別</h3>
+          <h3 className="mb-4 text-xl">商品標籤</h3>
           {fields.map((field, index) => (
             <div className="flex items-end gap-2" key={field.id}>
-              <Label label="類別名稱">
+              <Label label="標籤名稱">
                 <InputText name={`categories.${index}.title`} />
               </Label>
               <button
@@ -60,7 +60,7 @@ export default function CategorySetting() {
               });
             }}
           >
-            + 新增類別
+            + 新增標籤
           </button>
           <InputSubmit value={"儲存"} />
         </FormContainer>

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-type myDataBase = "users" | 'products'
+type myDataBase = "users" | 'products' | 'basic-setting'
 
 export async function connectToMongo(dbName: myDataBase) {
     try {

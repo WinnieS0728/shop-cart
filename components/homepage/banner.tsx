@@ -9,7 +9,7 @@ export default function Banner() {
           <h1 className="text-[3rem] leading-snug">還不知道要賣什麼</h1>
           <h2>
             做了一個購物車練習網站，但我還不知道要賣什麼，反正就先隨便打一些字當作說明，然後把
-            hame page 填滿哈哈
+            home page 填滿哈哈
           </h2>
           <Link href={"/"} className="rounded-xl bg-yellow-500 px-4 py-4 mt-4">
             馬上買

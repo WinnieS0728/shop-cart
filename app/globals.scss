@@ -22,15 +22,11 @@
 }
 
 @layer utilities {
-  .fake-react-select {
-    @apply h-9 w-full;
-  }
-
   .circle-icon {
     @apply flex aspect-square items-center justify-center rounded-full;
   }
 
-  .form-container {
-    @apply rounded-md border-2 border-yellow-500 p-4
+  .add-new-btn {
+    @apply w-full border border-dashed border-yellow-500 px-4 py-2
   }
 }

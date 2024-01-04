@@ -1,14 +1,15 @@
-// "use client";
+"use client";
 import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ImageDropzone from "./ImageDropzone";
 import { z } from "zod";
 import { product_schema } from "@/libs/mongoDB/models/product";
-import { Label, InputText, InputOnlyNumber } from "../UI/inputs";
+import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
 import { useEdgeStore } from "@/libs/edgestore";
 import { ReactAsyncSelect, ReactSelect } from "@components/UI/select";
 import { toast } from "react-toastify";
+import FormContainer from "../UI/form";
 export default function CreateProductForm() {
   const { edgestore } = useEdgeStore();
 
@@ -74,47 +75,45 @@ export default function CreateProductForm() {
   return (
     <>
       <FormProvider {...methods}>
-        <form
+        <FormContainer
           onSubmit={handleSubmit(onSubmit)}
-          className="flex items-center justify-center gap-4 w-full"
+          className="flex flex-col gap-2"
         >
-          <ImageDropzone setImageUrl={setValue} />
-          <div className="flex w-full flex-col gap-2">
-            <Label label="產品名稱" required>
-              <InputText name="title" error={errors.title?.message} />
-            </Label>
-            <Label label="產品內容">
-              <InputText name="content" error={errors.content?.message} />
-            </Label>
-            <Label label="產品分類">
-              <Controller
-                control={control}
-                name="category"
-                render={({ field: { onChange } }) => <ReactSelect isMulti />}
-              />
-            </Label>
-            <Label label="價格" required>
-              <InputOnlyNumber name="price" error={errors.price?.message} />
-            </Label>
-            <Label label="庫存" required>
-              <InputOnlyNumber name="stock" error={errors.stock?.message} />
-            </Label>
-            <Label label="標籤">
-              <Controller
-                control={control}
-                name="tags"
-                render={({ field: { onChange } }) => (
-                  <ReactAsyncSelect isMulti />
-                )}
-              />
-            </Label>
-            <input
-              type="submit"
-              value="send"
-              // disabled={isSubmitting || !getIsImageUploadDone()}
-            />
+          <div className="flex items-center gap-4">
+            <ImageDropzone setImageUrl={setValue} />
+            <div className="flex w-full flex-col gap-2">
+              <Label label="產品名稱" required>
+                <InputText name="title" error={errors.title?.message} />
+              </Label>
+              <Label label="產品內容">
+                <InputText name="content" error={errors.content?.message} />
+              </Label>
+              <Label label="產品分類">
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field: { onChange } }) => <ReactSelect isMulti />}
+                />
+              </Label>
+              <Label label="價格" required>
+                <InputOnlyNumber name="price" error={errors.price?.message} />
+              </Label>
+              <Label label="庫存" required>
+                <InputOnlyNumber name="stock" error={errors.stock?.message} />
+              </Label>
+              <Label label="標籤">
+                <Controller
+                  control={control}
+                  name="tags"
+                  render={({ field: { onChange } }) => (
+                    <ReactAsyncSelect isMulti />
+                  )}
+                />
+              </Label>
+            </div>
           </div>
-        </form>
+          <InputSubmit value={"儲存"} />
+        </FormContainer>
       </FormProvider>
     </>
   );

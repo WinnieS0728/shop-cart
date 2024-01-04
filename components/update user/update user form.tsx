@@ -6,6 +6,7 @@ import { user_schema } from "@/libs/mongoDB/models/user";
 import { z } from "zod";
 import { CreditCard } from "../UI/credit card";
 import { zodResolver } from "@hookform/resolvers/zod";
+import FormContainer from "../UI/form";
 
 export default function UpdateUserForm() {
   const methods = useForm<z.infer<typeof user_schema>>({
@@ -35,9 +36,9 @@ export default function UpdateUserForm() {
   return (
     <>
       <FormProvider {...methods}>
-        <form
+        <FormContainer
           onSubmit={handleSubmit(onSubmit)}
-          className="form-container flex flex-col gap-4"
+          className="flex flex-col gap-4"
         >
           <fieldset className="flex items-center justify-center gap-8">
             <div className="circle-icon w-1/3 bg-red-500">avatar</div>
@@ -78,7 +79,7 @@ export default function UpdateUserForm() {
             </div>
           </Label>
           <InputSubmit value="儲存" disabled={isSubmitting} />
-        </form>
+        </FormContainer>
       </FormProvider>
     </>
   );

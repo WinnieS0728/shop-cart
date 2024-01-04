@@ -1,6 +1,7 @@
 import React, { InputHTMLAttributes, ReactNode, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { eye } from "@icons";
+import { cn } from "@/libs/utils/cn";
 
 interface inputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
@@ -31,21 +32,29 @@ export function Label({
   );
 }
 
-export function InputText({ name, placeholder, error, ...props }: inputProps) {
+export function InputText({
+  name,
+  placeholder,
+  className,
+  ...props
+}: inputProps) {
   const { control } = useFormContext();
   return (
     <Controller
       control={control}
       name={name!}
-      render={({ field }) => (
+      render={({ field, fieldState: { error } }) => (
         <>
           <input
             {...field}
             {...props}
             autoComplete="off"
             placeholder={placeholder}
+            className={cn("", className, {
+              "border-2 border-red-500 focus-visible:outline-red-500": error,
+            })}
           />
-          {error && <p className="text-sm text-red-500">*{error}</p>}
+          {error && <p className="text-sm text-red-500">*{error.message}</p>}
         </>
       )}
     />
