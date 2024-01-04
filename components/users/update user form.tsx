@@ -15,6 +15,7 @@ export default function UpdateUserForm() {
       username: "",
       email: "",
       password: "",
+      avatar: "",
       phone: "",
       address: "",
       payment: {
@@ -28,6 +29,8 @@ export default function UpdateUserForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = methods;
+
+  console.log(errors);
 
   async function onSubmit(data: z.infer<typeof user_schema>) {
     console.log(data);
@@ -75,7 +78,7 @@ export default function UpdateUserForm() {
           </Label>
           <Label label="付款方式(選填)" htmlFor="creditCard">
             <div className="flex justify-center">
-              <CreditCard error={errors.payment} />
+              <CreditCard />
             </div>
           </Label>
           <InputSubmit value="儲存" disabled={isSubmitting} />

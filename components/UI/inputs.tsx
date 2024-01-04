@@ -60,14 +60,14 @@ export function InputText({
     />
   );
 }
-export function InputOnlyNumber({ name, error, ...props }: inputProps) {
+export function InputOnlyNumber({ name, className, ...props }: inputProps) {
   const { control } = useFormContext();
   return (
     <>
       <Controller
         control={control}
         name={name!}
-        render={({ field }) => (
+        render={({ field, fieldState: { error } }) => (
           <>
             <input
               {...field}
@@ -88,16 +88,19 @@ export function InputOnlyNumber({ name, error, ...props }: inputProps) {
                 }
               }}
               autoComplete="off"
+              className={cn("", className, {
+                "border-2 border-red-500 focus-visible:outline-red-500": error,
+              })}
             />
+            {error && <p className="text-sm text-red-500">*{error.message}</p>}
           </>
         )}
       />
-      {error && <p className="text-sm text-red-500">*{error}</p>}
     </>
   );
 }
 
-export function InputPassword({ name, error, ...props }: inputProps) {
+export function InputPassword({ name, className, ...props }: inputProps) {
   const { control } = useFormContext();
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -107,41 +110,50 @@ export function InputPassword({ name, error, ...props }: inputProps) {
       <Controller
         control={control}
         name={name!}
-        render={({ field }) => (
-          <div className="flex items-center justify-center gap-2">
-            <input
-              type={showPassword ? "text" : "password"}
-              {...field}
-              {...props}
-              autoComplete="off"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setShowPassword((prev) => !prev);
-              }}
-            >
-              {showPassword ? (
-                <eye.open className="text-xl" />
-              ) : (
-                <eye.close className="text-xl" />
-              )}
-            </button>
-          </div>
+        render={({ field, fieldState: { error } }) => (
+          <>
+            <div className="flex items-center justify-center gap-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                {...field}
+                {...props}
+                autoComplete="off"
+                className={cn("", className, {
+                  "border-2 border-red-500 focus-visible:outline-red-500":
+                    error,
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPassword((prev) => !prev);
+                }}
+              >
+                {showPassword ? (
+                  <eye.open className="text-xl" />
+                ) : (
+                  <eye.close className="text-xl" />
+                )}
+              </button>
+            </div>
+            {error && <p className="text-sm text-red-500">*{error.message}</p>}
+          </>
         )}
       />
-      {error && <p className="text-sm text-red-500">*{error}</p>}
     </>
   );
 }
 
-export function InputSubmit({ value }: inputProps) {
+export function InputSubmit({ value, ...props }: inputProps) {
   return (
     <>
       <input
         type="submit"
         value={value}
-        className="cursor-pointer rounded-md bg-yellow-500"
+        className={cn("cursor-pointer rounded-md bg-yellow-500", {
+          "cursor-not-allowed bg-red-500": props.disabled,
+        })}
+        {...props}
       />
     </>
   );

@@ -20,7 +20,12 @@ import { ReactSelect } from "./select";
 import { cn } from "@/libs/utils/cn";
 
 function CardNumber() {
-  const { control, setFocus, register, setValue } = useFormContext();
+  const {
+    control,
+    setFocus,
+    register,
+    formState: { errors },
+  } = useFormContext();
   const [isTyping, setIsTyping] = useState(true);
   const [input1, input2, input3, input4] = useWatch({
     control,
@@ -85,20 +90,22 @@ function CardNumber() {
           control={control}
           name="payment.cardNumber.0"
           render={({ field: { onChange } }) => (
-            <input
-              type="text"
-              id="creditCard"
-              className="w-20 text-center"
-              placeholder="XXXX"
-              {...register("payment.cardNumber.0")}
-              onChange={(event) => {
-                const input = (event.target as HTMLInputElement).value;
-                const value = input.replace(/[^0-9]/gi, "");
-                onChange(value);
-              }}
-              maxLength={4}
-              autoComplete="off"
-            />
+            <>
+              <input
+                type="text"
+                id="creditCard"
+                className="w-20 text-center"
+                placeholder="XXXX"
+                {...register("payment.cardNumber.0")}
+                onChange={(event) => {
+                  const input = (event.target as HTMLInputElement).value;
+                  const value = input.replace(/[^0-9]/gi, "");
+                  onChange(value);
+                }}
+                maxLength={4}
+                autoComplete="off"
+              />
+            </>
           )}
         />
 
@@ -165,12 +172,27 @@ function CardNumber() {
           )}
         />
       </div>
+      {(
+        errors.payment as
+          | Merge<
+              FieldError,
+              FieldErrorsImpl<{
+                cardNumber: string[];
+                expiration_date: string[];
+                security_code: string;
+              }>
+            >
+          | undefined
+      )?.cardNumber && <p className="text-sm text-red-500">*請填寫完整卡號</p>}
     </>
   );
 }
 
 function Expiration_date() {
-  const { control } = useFormContext();
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
 
   function get2NumberMonth(month: number): string {
     if (month < 10) {
@@ -201,40 +223,68 @@ function Expiration_date() {
     }));
   }, []);
 
+  const expiration_date_error = (
+    errors.payment as
+      | Merge<
+          FieldError,
+          FieldErrorsImpl<{
+            cardNumber: string[];
+            expiration_date: string[];
+            security_code: string;
+          }>
+        >
+      | undefined
+  )?.expiration_date;
+
   return (
     <>
       <div className="flex items-center gap-2">
         <Controller
           control={control}
           name="payment.expiration_date.0"
-          render={({ field: { onChange } }) => (
-            <ReactSelect
-              instanceId={"payment.expiration_date.0"}
-              className="w-24"
-              options={monthOption}
-              onChange={(option) => {
-                onChange((option as { label: string; value: string }).value);
-              }}
-              placeholder="MM"
-            />
+          render={({ field: { onChange }, fieldState: { error } }) => (
+            <div className="flex flex-col">
+              <ReactSelect
+                instanceId={"payment.expiration_date.0"}
+                className="w-24"
+                options={monthOption}
+                onChange={(option) => {
+                  onChange((option as { label: string; value: string }).value);
+                }}
+                placeholder="MM"
+              />
+              {error && (
+                <p className="text-sm text-red-500">*{error.message}</p>
+              )}
+            </div>
           )}
         />
         <Controller
           control={control}
           name="payment.expiration_date.1"
-          render={({ field: { onChange } }) => (
-            <ReactSelect
-              instanceId={"payment.expiration_date.1"}
-              className="w-24"
-              options={yearOption}
-              onChange={(option) => {
-                onChange((option as { label: string; value: string }).value);
-              }}
-              placeholder="YY"
-            />
+          render={({ field: { onChange }, fieldState: { error } }) => (
+            <div className="flex flex-col">
+              <ReactSelect
+                instanceId={"payment.expiration_date.1"}
+                className="w-24"
+                options={yearOption}
+                onChange={(option) => {
+                  onChange((option as { label: string; value: string }).value);
+                }}
+                placeholder="YY"
+              />
+              {error && (
+                <p className="text-sm text-red-500">*{error.message}</p>
+              )}
+            </div>
           )}
         />
       </div>
+      {expiration_date_error && (
+        <p className="text-sm text-red-500">
+          *{expiration_date_error.root?.message}
+        </p>
+      )}
     </>
   );
 }
@@ -296,7 +346,6 @@ export function CreditCard({
       >
     | undefined;
 }) {
-  // console.log(error);
   return (
     <>
       <div className="relative aspect-video w-[40rem]">
@@ -306,16 +355,11 @@ export function CreditCard({
             <div>
               <p className="mb-2 uppercase">card number</p>
               <CardNumber />
-              {error?.cardNumber && (
-                <p className="text-sm text-red-500">*卡號錯誤</p>
-              )}
+              {}
             </div>
             <div>
               <p className="mb-2 uppercase">exp. date</p>
               <Expiration_date />
-              {error?.expiration_date && (
-                <p className="text-sm text-red-500">*到期日錯誤</p>
-              )}
             </div>
           </div>
         </Card>
@@ -324,9 +368,6 @@ export function CreditCard({
           <div className="mt-12">
             <p className="mb-2 uppercase">cvc</p>
             <SecurityCode />
-            {error?.security_code && (
-              <p className="text-sm text-red-500">*安全碼錯誤</p>
-            )}
           </div>
         </Card>
       </div>
