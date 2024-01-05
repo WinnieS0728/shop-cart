@@ -24,6 +24,7 @@ export default function SignUp() {
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onSubmit)}>
+          <h3 className="text-xl">建立帳號</h3>
           <fieldset className="flex items-center justify-center gap-8">
             <div className="circle-icon w-1/3 bg-red-500">avatar</div>
             <div className="flex w-full flex-col gap-4">

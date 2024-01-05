@@ -111,8 +111,8 @@ export default function CategorySetting() {
         <FormContainer
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-2"
+          title="商品類別"
         >
-          <h3 className="mb-4 text-xl">商品類別</h3>
           {isPending ? (
             <>
               <Loading.block height={16 * 10} />

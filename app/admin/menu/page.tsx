@@ -1,5 +1,8 @@
+"use client";
+import { ReactSelect } from "@/components/UI/select";
 import Link from "next/link";
 import React from "react";
+import Select, { components } from "react-select";
 
 export default function MenuPage() {
   return (

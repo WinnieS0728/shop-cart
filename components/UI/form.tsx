@@ -4,6 +4,7 @@ import React, { HTMLAttributes } from "react";
 export default function FormContainer({
   className,
   children,
+  title,
   ...props
 }: HTMLAttributes<HTMLFormElement>) {
   return (
@@ -11,6 +12,7 @@ export default function FormContainer({
       {...props}
       className={cn("rounded-md border-2 border-yellow-500 p-4", className)}
     >
+      {title && <h3 className="mb-4 text-xl">{title}</h3>}
       {children}
     </form>
   );

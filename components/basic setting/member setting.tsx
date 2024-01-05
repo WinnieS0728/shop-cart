@@ -113,8 +113,8 @@ export default function MemberSetting() {
         <FormContainer
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-2"
+          title="會員階級"
         >
-          <h3 className="mb-4 text-xl">會員階級</h3>
           {isPending ? (
             <>
               <Loading.block height={16 * 10} />

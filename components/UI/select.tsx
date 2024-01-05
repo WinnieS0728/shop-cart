@@ -1,6 +1,6 @@
 import { cn } from "@/libs/utils/cn";
 import React, { useEffect, useState } from "react";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import AsyncSelect from "react-select/async";
 
 function FakeReactSelect({
@@ -15,7 +15,7 @@ function FakeReactSelect({
           props.className,
         )}
       >
-        <p className="flex w-full items-center px-[10px] py-[2px] text-[#808080] overflow-x-clip">
+        <p className="flex w-full items-center overflow-x-clip px-[10px] py-[2px] text-[#808080]">
           {placeholder}
         </p>
         <div className="my-2 w-[1px] bg-[#cccccc]"></div>
@@ -40,41 +40,45 @@ function useClient() {
   return isClient;
 }
 
-export function ReactSelect(props: Parameters<Select>[0]) {
-  const isClient = useClient();
+export function ReactSelect({ className, ...props }: Parameters<Select>[0]) {
   return (
     <>
-      {isClient ? (
-        <Select
-          {...props}
-          className={cn("w-full", props.className)}
-          closeMenuOnSelect={props.isMulti ? false : true}
-          menuPlacement="auto"
-        />
-      ) : (
-        <FakeReactSelect {...props} />
-      )}
+      <Select
+        {...props}
+        instanceId={`react-select-${props.name}`}
+        className={cn("w-full", className)}
+        closeMenuOnSelect={props.isMulti ? false : true}
+        menuPlacement="auto"
+        components={{
+          Input: (props) => (
+            <components.Input {...props} aria-activedescendant={undefined} />
+          ),
+        }}
+      />
     </>
   );
 }
 
-export function ReactAsyncSelect(props: Parameters<AsyncSelect>[0]) {
-  const isClient = useClient();
-
+export function ReactAsyncSelect({
+  className,
+  ...props
+}: Parameters<AsyncSelect>[0]) {
   return (
     <>
-      {isClient ? (
-        <AsyncSelect
-          {...props}
-          cacheOptions
-          defaultOptions
-          className={cn("w-full", props.className)}
-          closeMenuOnSelect={props.isMulti ? false : true}
-          menuPosition="fixed"
-        />
-      ) : (
-        <FakeReactSelect {...props} />
-      )}
+      <AsyncSelect
+        instanceId={`react-asyncSelect-${props.name}`}
+        {...props}
+        cacheOptions
+        defaultOptions
+        className={cn("w-full", className)}
+        closeMenuOnSelect={props.isMulti ? false : true}
+        menuPosition="fixed"
+        components={{
+          Input: (props) => (
+            <components.Input {...props} aria-activedescendant={undefined} />
+          ),
+        }}
+      />
     </>
   );
 }

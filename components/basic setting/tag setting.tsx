@@ -108,8 +108,8 @@ export default function TagsSetting() {
         <FormContainer
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-2"
+          title="商品標籤"
         >
-          <h3 className="mb-4 text-xl">商品標籤</h3>
           {isPending ? (
             <>
               <Loading.block height={16 * 10} />

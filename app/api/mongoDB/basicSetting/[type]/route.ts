@@ -16,13 +16,13 @@ export async function GET(req: NextRequest, { params: { type } }: params) {
 
         switch (type) {
             case 'member':
-                const member_res = await DB_basicSetting_member.find()
+                const member_res = await DB_basicSetting_member.find().lean()
                 return NextResponse.json(member_res, { status: 200 })
             case "category":
-                const categories_res = await DB_basicSetting_category.find()
+                const categories_res = await DB_basicSetting_category.find().lean()
                 return NextResponse.json(categories_res, { status: 200 })
             case 'tag':
-                const tag_res = await DB_basicSetting_tag.find()
+                const tag_res = await DB_basicSetting_tag.find().lean()
                 return NextResponse.json(tag_res, { status: 200 })
             default:
                 return NextResponse.json('type error', { status: 404 })
@@ -96,21 +96,27 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
 
 export async function PATCH(req: NextRequest, { params: { type } }: params) {
     const requestBody = await req.json()
-console.log(requestBody);
+    console.log(requestBody);
     try {
         await connectToMongo('basic-setting')
 
         switch (type) {
             case 'member':
-                await DB_basicSetting_member.findOneAndUpdate({ title: requestBody.title }, {
-                    title: requestBody.title,
-                    threshold: requestBody.threshold
+                await DB_basicSetting_member.findOneAndUpdate({
+                    title: {
+                        $eq: requestBody.title
+                    }
+                }, {
+                    $set: {
+                        title: requestBody.title,
+                        threshold: requestBody.threshold
+                    }
                 })
                 return NextResponse.json('更新成功', {
                     status: 200
                 })
             case 'category':
-                
+
                 await DB_basicSetting_category.findOneAndUpdate({ title: requestBody.title }, {
                     title: requestBody.title,
                 })
@@ -118,7 +124,7 @@ console.log(requestBody);
                     status: 200
                 })
             case 'tag':
-                
+
                 await DB_basicSetting_tag.findOneAndUpdate({ title: requestBody.title }, {
                     title: requestBody.title,
                 })
