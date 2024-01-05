@@ -1,6 +1,5 @@
 import { Schema, model, models } from "mongoose";
 import { z } from "zod";
-import { ModelType } from "../../model type";
 import { findRepeat } from "@/libs/utils/find repeat";
 
 export const memberSetting_Schema = z.object({
@@ -35,8 +34,6 @@ export const memberSetting_Schema = z.object({
             
         })
 })
-
-export type memberModel = ModelType<z.infer<typeof memberSetting_Schema>['member'][number]>
 
 const memberSettingModel = new Schema<z.infer<typeof memberSetting_Schema>['member'][number]>(
     {

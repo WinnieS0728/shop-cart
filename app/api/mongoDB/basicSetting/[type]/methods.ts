@@ -1,94 +1,105 @@
 import { categoriesSetting_Schema } from "@/libs/mongoDB/models/basic setting/category";
 import { memberSetting_Schema } from "@/libs/mongoDB/models/basic setting/member";
 import { tagSetting_Schema } from "@/libs/mongoDB/models/basic setting/tag";
-import { Types } from "mongoose";
+import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 
-export async function createMember(
-    data: z.infer<typeof memberSetting_Schema>["member"][number],
-) {
-    return fetch(`/api/mongoDB/basicSetting/member`, {
-        method: "POST",
-        headers: {
-            "Content-type": "application/json",
+function useCreateMember() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'member', 'POST'],
+        mutationFn: (data: z.infer<typeof memberSetting_Schema>["member"][number],) => fetch(`/api/mongoDB/basicSetting/member`, {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+    })
+}
+function useUpdateMember() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'member', "PATCH"],
+        mutationFn: (data: z.infer<typeof memberSetting_Schema>["member"][number],) => fetch(`/api/mongoDB/basicSetting/member`, {
+            method: "PATCH",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+    })
+}
+function useDeleteMember() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'member', 'DELETE'],
+        mutationFn: (title: string) => fetch(`/api/mongoDB/basicSetting/member?title=${title}`, {
+            method: "DELETE",
+        })
+    })
+}
+
+function useCreateCategory() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'category', 'POST'],
+        mutationFn: (data: z.infer<typeof categoriesSetting_Schema>['categories'][number]) => fetch(`/api/mongoDB/basicSetting/category`, {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+    })
+}
+
+function useDeleteCategory() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'category', "DELETE"],
+        mutationFn: (title: string) => fetch(`/api/mongoDB/basicSetting/category?title=${title}`, {
+            method: "DELETE",
+        })
+    })
+}
+
+function useCreateTag() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'tag', 'POST'],
+        mutationFn: (data: z.infer<typeof tagSetting_Schema>['tags'][number],) => fetch(`/api/mongoDB/basicSetting/tag`, {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+    })
+}
+
+function useDeleteTag() {
+    return useMutation({
+        mutationKey: ['admin', 'basicSetting', 'tag', 'DELETE'],
+        mutationFn: (title: string) => fetch(`/api/mongoDB/basicSetting/tag?title=${title}`, {
+            method: "DELETE",
+        })
+    })
+}
+
+export function useBasicSetting() {
+    return {
+        member: {
+            POST: useCreateMember(),
+            PATCH: useUpdateMember(),
+            DELETE: useDeleteMember()
         },
-        body: JSON.stringify(data),
-    });
-}
-export async function updateMember(
-    data: z.infer<typeof memberSetting_Schema>["member"][number],
-) {
-    return fetch(`/api/mongoDB/basicSetting/member`, {
-        method: "PATCH",
-        headers: {
-            "Content-type": "application/json",
+        category: {
+            POST: useCreateCategory(),
+            DELETE: useDeleteCategory()
         },
-        body: JSON.stringify(data),
-    });
-}
-export async function deleteMember(id: Types.ObjectId) {
-    return fetch(`/api/mongoDB/basicSetting/member?id=${id}`, {
-        method: "DELETE",
-    });
+        tag: {
+            POST: useCreateTag(),
+            DELETE: useDeleteTag()
+        }
+    }
 }
 
 
-export async function createCategory(
-    data: z.infer<typeof categoriesSetting_Schema>['categories'][number],
-) {
-    return fetch(`/api/mongoDB/basicSetting/category`, {
-        method: "POST",
-        headers: {
-            "Content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-    });
-}
 
-export async function updateCategory(
-    data: z.infer<typeof categoriesSetting_Schema>['categories'][number],
-) {
-    return fetch(`/api/mongoDB/basicSetting/category`, {
-        method: "PATCH",
-        headers: {
-            "Content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-    });
-}
 
-export async function deleteCategory(id: Types.ObjectId) {
-    return fetch(`/api/mongoDB/basicSetting/category?id=${id}`, {
-        method: "DELETE",
-    });
-}
 
-export async function createTag(
-    data: z.infer<typeof tagSetting_Schema>['tags'][number],
-) {
-    return fetch(`/api/mongoDB/basicSetting/tag`, {
-        method: "POST",
-        headers: {
-            "Content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-    });
-}
-
-export async function updateTag(
-    data: z.infer<typeof tagSetting_Schema>['tags'][number],
-) {
-    return fetch(`/api/mongoDB/basicSetting/tag`, {
-        method: "PATCH",
-        headers: {
-            "Content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-    });
-}
-
-export async function deleteTag(id: Types.ObjectId) {
-    return fetch(`/api/mongoDB/basicSetting/tag?id=${id}`, {
-        method: "DELETE",
-    });
-}

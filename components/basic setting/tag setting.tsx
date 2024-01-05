@@ -11,16 +11,18 @@ import {
   tagSetting_Schema,
 } from "@/libs/mongoDB/models/basic setting/tag";
 import { useQuery } from "@tanstack/react-query";
-import {
-  createTag,
-  deleteTag,
-  updateTag,
-} from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { useBasicSetting } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 
 export default function TagsSetting() {
-  const { data: tagSettingData, isPending } = useQuery<tagModel[]>({
+  const {
+    POST: { mutateAsync: createTag },
+    DELETE: { mutateAsync: deleteTag },
+  } = useBasicSetting().tag;
+  const { data: tagSettingData, isPending } = useQuery<
+    z.infer<typeof tagSetting_Schema>["tags"]
+  >({
     queryKey: ["admin", "basicSetting", "tag"],
     queryFn: async () => {
       const res = await fetch("/api/mongoDB/basicSetting/tag");
@@ -57,9 +59,6 @@ export default function TagsSetting() {
       (dataInDB) =>
         !data.tags.some((dataInForm) => dataInForm.title === dataInDB.title),
     );
-    const shouldUpdate = data.tags.filter((dataInform) =>
-      tagSettingData!.some((dataInDB) => dataInDB.title === dataInform.title),
-    );
     const shouldCreate = data.tags.filter(
       (dataInform) =>
         !tagSettingData!.some(
@@ -67,29 +66,16 @@ export default function TagsSetting() {
         ),
     );
 
-    const res_d = await Promise.all(
-      shouldDelete.map(async (data) => {
-        return await deleteTag(data._id);
-      }),
-    );
+    const isDeleteSuccess = (
+      await Promise.all(shouldDelete.map(async (data) => deleteTag(data.title)))
+    ).every((res) => res.ok);
 
-    const res_u = await Promise.all(
-      shouldUpdate.map(async (data) => {
-        return await updateTag(data);
-      }),
-    );
-
-    const res_c = await Promise.all(
-      shouldCreate.map(async (data) => {
-        return await createTag(data);
-      }),
-    );
+    const isCreateSuccess = (
+      await Promise.all(shouldCreate.map(async (data) => createTag(data)))
+    ).every((res) => res.ok);
 
     const request = new Promise((res, rej) => {
-      const isDeleteSuccess = res_d.every((res) => res.ok);
-      const isUpdateSuccess = res_u.every((res) => res.ok);
-      const isCreateSuccess = res_c.every((res) => res.ok);
-      if (!isDeleteSuccess || !isUpdateSuccess || !isCreateSuccess) {
+      if (!isDeleteSuccess || !isCreateSuccess) {
         rej(false);
       } else {
         res(true);

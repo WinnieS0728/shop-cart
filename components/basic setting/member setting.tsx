@@ -6,21 +6,21 @@ import { z } from "zod";
 import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import {
-  memberModel,
-  memberSetting_Schema,
-} from "@/libs/mongoDB/models/basic setting/member";
+import { memberSetting_Schema } from "@/libs/mongoDB/models/basic setting/member";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "../UI/loading";
-import {
-  createMember,
-  deleteMember,
-  updateMember,
-} from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { useBasicSetting } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 
 export default function MemberSetting() {
-  const { data: memberSettingData, isPending } = useQuery<memberModel[]>({
+  const {
+    POST: { mutateAsync: createMember },
+    PATCH: { mutateAsync: updateMember },
+    DELETE: { mutateAsync: deleteMember },
+  } = useBasicSetting().member;
+  const { data: memberSettingData, isPending } = useQuery<
+    z.infer<typeof memberSetting_Schema>["member"]
+  >({
     queryKey: ["admin", "basicSetting", "member"],
     queryFn: async () => {
       const res = await fetch("/api/mongoDB/basicSetting/member");
@@ -71,29 +71,23 @@ export default function MemberSetting() {
         ),
     );
 
-    const res_d = await Promise.all(
-      shouldDelete.map(async (data) => {
-        return await deleteMember(data._id);
-      }),
-    );
+    const isDELETEsuccess = (
+      await Promise.all(
+        shouldDelete.map(async (data) => deleteMember(data.title)),
+      )
+    ).every((res) => res.ok);
 
-    const res_u = await Promise.all(
-      shouldUpdate.map(async (data) => {
-        return await updateMember(data);
-      }),
-    );
+    const isPATCHsuccess = (
+      await Promise.all(shouldUpdate.map(async (data) => updateMember(data)))
+    ).every((res) => res.ok);
+    console.log(isPATCHsuccess);
 
-    const res_c = await Promise.all(
-      shouldCreate.map(async (data) => {
-        return await createMember(data);
-      }),
-    );
+    const isPOSTsuccess = (
+      await Promise.all(shouldCreate.map(async (data) => createMember(data)))
+    ).every((res) => res.ok);
 
     const request = new Promise((res, rej) => {
-      const isDeleteSuccess = res_d.every((res) => res.ok);
-      const isUpdateSuccess = res_u.every((res) => res.ok);
-      const isCreateSuccess = res_c.every((res) => res.ok);
-      if (!isDeleteSuccess || !isUpdateSuccess || !isCreateSuccess) {
+      if (!isPOSTsuccess || !isPATCHsuccess || !isDELETEsuccess) {
         rej(false);
       } else {
         res(true);

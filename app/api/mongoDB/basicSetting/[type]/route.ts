@@ -60,23 +60,35 @@ export async function POST(req: NextRequest, { params: { type } }: params) {
 
 export async function DELETE(req: NextRequest, { params: { type } }: params) {
     const searchParams = req.nextUrl.searchParams;
-    const deleteId = searchParams.get('id')
+    const deleteTitle = searchParams.get('title')
 
     try {
         connectToMongo('basic-setting')
         switch (type) {
             case 'member':
-                await DB_basicSetting_member.findByIdAndDelete(deleteId)
+                await DB_basicSetting_member.findOneAndDelete({
+                    title: {
+                        $eq: deleteTitle
+                    }
+                })
                 return NextResponse.json('刪除成功', {
                     status: 200
                 })
             case 'category':
-                await DB_basicSetting_category.findByIdAndDelete(deleteId)
+                await DB_basicSetting_category.findOneAndDelete({
+                    title: {
+                        $eq: deleteTitle
+                    }
+                })
                 return NextResponse.json('刪除成功', {
                     status: 200
                 })
             case 'tag':
-                await DB_basicSetting_tag.findByIdAndDelete(deleteId)
+                await DB_basicSetting_tag.findOneAndDelete({
+                    title: {
+                        $eq: deleteTitle
+                    }
+                })
                 return NextResponse.json('刪除成功', {
                     status: 200
                 })
@@ -111,22 +123,6 @@ export async function PATCH(req: NextRequest, { params: { type } }: params) {
                         title: requestBody.title,
                         threshold: requestBody.threshold
                     }
-                })
-                return NextResponse.json('更新成功', {
-                    status: 200
-                })
-            case 'category':
-
-                await DB_basicSetting_category.findOneAndUpdate({ title: requestBody.title }, {
-                    title: requestBody.title,
-                })
-                return NextResponse.json('更新成功', {
-                    status: 200
-                })
-            case 'tag':
-
-                await DB_basicSetting_tag.findOneAndUpdate({ title: requestBody.title }, {
-                    title: requestBody.title,
                 })
                 return NextResponse.json('更新成功', {
                     status: 200

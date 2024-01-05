@@ -1,7 +1,6 @@
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Schema, model, models } from "mongoose";
 import { z } from "zod";
-import { ModelType } from "../../model type";
 
 export const tagSetting_Schema = z.object({
     tags: z.array(z.object({
@@ -20,8 +19,6 @@ export const tagSetting_Schema = z.object({
         }
     }),
 })
-
-export type tagModel = ModelType<z.infer<typeof tagSetting_Schema>['tags'][number]>
 
 const tagSettingModel = new Schema<z.infer<typeof tagSetting_Schema>['tags'][number]>({
     title: {

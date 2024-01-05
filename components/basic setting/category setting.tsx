@@ -6,21 +6,20 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import {
-  categoriesSetting_Schema,
-  categoryModel,
-} from "@/libs/mongoDB/models/basic setting/category";
+import { categoriesSetting_Schema } from "@/libs/mongoDB/models/basic setting/category";
 import { useQuery } from "@tanstack/react-query";
-import {
-  createCategory,
-  deleteCategory,
-  updateCategory,
-} from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { useBasicSetting } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 
 export default function CategorySetting() {
-  const { data: categorySettingData, isPending } = useQuery<categoryModel[]>({
+  const {
+    POST: { mutateAsync: createCategory },
+    DELETE: { mutateAsync: deleteCategory },
+  } = useBasicSetting().category;
+  const { data: categorySettingData, isPending } = useQuery<
+    z.infer<typeof categoriesSetting_Schema>["categories"]
+  >({
     queryKey: ["admin", "basicSetting", "category"],
     queryFn: async () => {
       const res = await fetch("/api/mongoDB/basicSetting/category");
@@ -30,14 +29,16 @@ export default function CategorySetting() {
   const methods = useForm<z.infer<typeof categoriesSetting_Schema>>({
     resolver: zodResolver(categoriesSetting_Schema),
     shouldUnregister: true,
-    defaultValues: categorySettingData ? {
-      categories: categorySettingData
-    } :async () => {
-      const res = await fetch("/api/mongoDB/basicSetting/category");
-      return {
-        categories: await res.json(),
-      };
-    },
+    defaultValues: categorySettingData
+      ? {
+          categories: categorySettingData,
+        }
+      : async () => {
+          const res = await fetch("/api/mongoDB/basicSetting/category");
+          return {
+            categories: await res.json(),
+          };
+        },
   });
 
   const {
@@ -58,11 +59,6 @@ export default function CategorySetting() {
           (dataInForm) => dataInForm.title === dataInDB.title,
         ),
     );
-    const shouldUpdate = data.categories.filter((dataInform) =>
-      categorySettingData!.some(
-        (dataInDB) => dataInDB.title === dataInform.title,
-      ),
-    );
     const shouldCreate = data.categories.filter(
       (dataInform) =>
         !categorySettingData!.some(
@@ -70,29 +66,18 @@ export default function CategorySetting() {
         ),
     );
 
-    const res_d = await Promise.all(
-      shouldDelete.map(async (data) => {
-        return await deleteCategory(data._id);
-      }),
-    );
+    const isDeleteSuccess = (
+      await Promise.all(
+        shouldDelete.map(async (data) => deleteCategory(data.title)),
+      )
+    ).every((res) => res.ok);
 
-    const res_u = await Promise.all(
-      shouldUpdate.map(async (data) => {
-        return await updateCategory(data);
-      }),
-    );
-
-    const res_c = await Promise.all(
-      shouldCreate.map(async (data) => {
-        return await createCategory(data);
-      }),
-    );
+    const isCreateSuccess = (
+      await Promise.all(shouldCreate.map(async (data) => createCategory(data)))
+    ).every((res) => res.ok);
 
     const request = new Promise((res, rej) => {
-      const isDeleteSuccess = res_d.every((res) => res.ok);
-      const isUpdateSuccess = res_u.every((res) => res.ok);
-      const isCreateSuccess = res_c.every((res) => res.ok);
-      if (!isDeleteSuccess || !isUpdateSuccess || !isCreateSuccess) {
+      if (!isDeleteSuccess || !isCreateSuccess) {
         rej(false);
       } else {
         res(true);
