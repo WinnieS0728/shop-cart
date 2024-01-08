@@ -8,7 +8,7 @@ import * as icons from "@icons";
 import FormContainer from "@UI/form";
 import { categoriesSetting_Schema } from "@/libs/mongoDB/models/basic setting/category";
 import { useQuery } from "@tanstack/react-query";
-import { useBasicSetting } from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 
@@ -16,7 +16,7 @@ export default function CategorySetting() {
   const {
     POST: { mutateAsync: createCategory },
     DELETE: { mutateAsync: deleteCategory },
-  } = useBasicSetting().category;
+  } = useBasicSettingMethods().category;
   const { data: categorySettingData, isPending } = useQuery<
     z.infer<typeof categoriesSetting_Schema>["categories"]
   >({

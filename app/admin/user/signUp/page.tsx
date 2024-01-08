@@ -1,21 +1,23 @@
 "use client";
 import React from "react";
-import FormContainer from "../UI/form";
+import FormContainer from "@UI/form";
 import { FormProvider, useForm } from "react-hook-form";
-import { Label, InputText, InputPassword, InputSubmit } from "../UI/inputs";
+import { Label, InputText, InputPassword, InputSubmit } from "@UI/inputs";
 import { z } from "zod";
 import { signUp_schema } from "@/libs/mongoDB/models/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import AvatarDropzone from "./avatar dropzone";
-import { useUserSetting } from "@/app/api/mongoDB/users/methods";
+
+import { useUserMethods } from "@/app/api/mongoDB/users/methods";
 import { toast } from "react-toastify";
 import { useEdgeStore } from "@/libs/edgestore";
+import AvatarDropzone from "@/components/users/avatar dropzone";
+import Link from "next/link";
 
 export default function SignUp() {
   const { edgestore } = useEdgeStore();
   const {
     POST: { mutateAsync: createUser },
-  } = useUserSetting();
+  } = useUserMethods();
   const methods = useForm<z.infer<typeof signUp_schema>>({
     resolver: zodResolver(signUp_schema),
     defaultValues: {
@@ -53,7 +55,7 @@ export default function SignUp() {
     });
   }
   return (
-    <>
+    <section className="px-8">
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onSubmit)} title="建立帳號">
           <div className="flex flex-col gap-4">
@@ -75,6 +77,12 @@ export default function SignUp() {
           </div>
         </FormContainer>
       </FormProvider>
-    </>
+      <div className="flex items-center justify-center gap-4 p-4">
+        <p>已經有帳號了嗎 ?</p>
+        <Link href={"../user"} className="button bg-yellow-500">
+          登入 !
+        </Link>
+      </div>
+    </section>
   );
 }

@@ -15,9 +15,11 @@ import {
   Merge,
 } from "react-hook-form";
 
-import { InputPassword } from "./inputs";
+import { InputPassword, InputText } from "./inputs";
 import { ReactSelect } from "./select";
 import { cn } from "@/libs/utils/cn";
+import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 
 function CardNumber() {
   const {
@@ -27,7 +29,7 @@ function CardNumber() {
     formState: { errors },
   } = useFormContext();
   const [isTyping, setIsTyping] = useState(true);
-  const [input1, input2, input3, input4] = useWatch({
+  const inputs = useWatch({
     control,
     name: "payment.cardNumber",
   });
@@ -43,28 +45,28 @@ function CardNumber() {
   }
 
   const setFocusWhenTyping = useCallback(() => {
-    if (input1.length === 4) {
+    if (inputs?.[0].length === 4) {
       setFocus("payment.cardNumber.1");
     }
-    if (input2.length === 4) {
+    if (inputs?.[1].length === 4) {
       setFocus("payment.cardNumber.2");
     }
-    if (input3.length === 4) {
+    if (inputs?.[2].length === 4) {
       setFocus("payment.cardNumber.3");
     }
-  }, [input1.length, input2.length, input3.length, setFocus]);
+  }, [inputs, setFocus]);
 
   const setFocusWhenDeleting = useCallback(() => {
-    if (input4.length === 0) {
+    if (inputs?.[3].length === 0) {
       setFocus("payment.cardNumber.2");
     }
-    if (input3.length === 0) {
+    if (inputs?.[2].length === 0) {
       setFocus("payment.cardNumber.1");
     }
-    if (input2.length === 0) {
+    if (inputs?.[1].length === 0) {
       setFocus("payment.cardNumber.0");
     }
-  }, [input2.length, input3.length, input4.length, setFocus]);
+  }, [inputs, setFocus]);
 
   useEffect(() => {
     const cardNumberDiv = cardNumberRef.current;
@@ -89,7 +91,7 @@ function CardNumber() {
         <Controller
           control={control}
           name="payment.cardNumber.0"
-          render={({ field: { onChange } }) => (
+          render={({ field: { onChange }, formState: { defaultValues } }) => (
             <>
               <input
                 type="text"
@@ -97,6 +99,7 @@ function CardNumber() {
                 className="w-20 text-center"
                 placeholder="XXXX"
                 {...register("payment.cardNumber.0")}
+                defaultValue={defaultValues?.payment?.cardNumber[0] ?? ""}
                 onChange={(event) => {
                   const input = (event.target as HTMLInputElement).value;
                   const value = input.replace(/[^0-9]/gi, "");
@@ -113,12 +116,13 @@ function CardNumber() {
         <Controller
           control={control}
           name="payment.cardNumber.1"
-          render={({ field: { onChange } }) => (
+          render={({ field: { onChange }, formState: { defaultValues } }) => (
             <input
               type="text"
               className="w-20 text-center"
               placeholder="XXXX"
               {...register("payment.cardNumber.1")}
+              defaultValue={defaultValues?.payment?.cardNumber[1] ?? ""}
               onChange={(event) => {
                 const input = (event.target as HTMLInputElement).value;
                 const value = input.replace(/[^0-9]/gi, "");
@@ -134,12 +138,13 @@ function CardNumber() {
         <Controller
           control={control}
           name="payment.cardNumber.2"
-          render={({ field: { onChange } }) => (
+          render={({ field: { onChange }, formState: { defaultValues } }) => (
             <input
               type="text"
               className="w-20 text-center"
               placeholder="XXXX"
               {...register("payment.cardNumber.2")}
+              defaultValue={defaultValues?.payment?.cardNumber[2] ?? ""}
               onChange={(event) => {
                 const input = (event.target as HTMLInputElement).value;
                 const value = input.replace(/[^0-9]/gi, "");
@@ -155,12 +160,13 @@ function CardNumber() {
         <Controller
           control={control}
           name="payment.cardNumber.3"
-          render={({ field: { onChange } }) => (
+          render={({ field: { onChange }, formState: { defaultValues } }) => (
             <input
               type="text"
               className="w-20 text-center"
               placeholder="XXXX"
               {...register("payment.cardNumber.3")}
+              defaultValue={defaultValues?.payment?.cardNumber[3] ?? ""}
               onChange={(event) => {
                 const input = (event.target as HTMLInputElement).value;
                 const value = input.replace(/[^0-9]/gi, "");
@@ -242,12 +248,25 @@ function Expiration_date() {
         <Controller
           control={control}
           name="payment.expiration_date.0"
-          render={({ field: { onChange }, fieldState: { error } }) => (
+          render={({
+            field: { onChange },
+            fieldState: { error },
+            formState: { defaultValues },
+          }) => (
             <div className="flex flex-col">
               <ReactSelect
                 instanceId={"payment.expiration_date.0"}
+                name="expiration_date-month"
                 className="w-24"
                 options={monthOption}
+                defaultValue={
+                  defaultValues?.payment?.expiration_date[0]
+                    ? {
+                        label: defaultValues.payment.expiration_date[0],
+                        value: defaultValues.payment.expiration_date[0],
+                      }
+                    : undefined
+                }
                 onChange={(option) => {
                   onChange((option as { label: string; value: string }).value);
                 }}
@@ -262,12 +281,25 @@ function Expiration_date() {
         <Controller
           control={control}
           name="payment.expiration_date.1"
-          render={({ field: { onChange }, fieldState: { error } }) => (
+          render={({
+            field: { onChange },
+            fieldState: { error },
+            formState: { defaultValues },
+          }) => (
             <div className="flex flex-col">
               <ReactSelect
                 instanceId={"payment.expiration_date.1"}
+                name="expiration_date-year"
                 className="w-24"
                 options={yearOption}
+                defaultValue={
+                  defaultValues?.payment?.expiration_date[1]
+                    ? {
+                        label: defaultValues.payment.expiration_date[1],
+                        value: defaultValues.payment.expiration_date[1],
+                      }
+                    : undefined
+                }
                 onChange={(option) => {
                   onChange((option as { label: string; value: string }).value);
                 }}
@@ -296,6 +328,7 @@ function SecurityCode() {
       <Controller
         control={control}
         name="payment.security_code"
+        defaultValue={""}
         render={({ field: { onChange } }) => (
           <InputPassword
             name="payment.security_code"
@@ -332,30 +365,47 @@ function Card({
     </div>
   );
 }
-export function CreditCard({
-  error,
-}: {
-  error?:
-    | Merge<
-        FieldError,
-        FieldErrorsImpl<{
-          cardNumber: string[];
-          expiration_date: string[];
-          security_code: string;
-        }>
-      >
-    | undefined;
-}) {
+export function CreditCard() {
+  const { control } = useFormContext();
+  // const consumption = useWatch({ control, name: "consumption" });
+  const consumption = 100;
+  const { data } = useQuery({
+    queryKey: [
+      "admin",
+      "basicSetting",
+      "GET",
+      {
+        key: "threshold",
+        action: "get level",
+      },
+    ],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/mongoDB/basicSetting/getMemberLevel?consumption=${consumption}`,
+        {
+          method: "GET",
+        },
+      );
+      return await res.json();
+    },
+  });
+  console.log(data);
   return (
     <>
       <div className="relative aspect-video w-[40rem]">
-        <Card className="absolute left-0 top-0 z-10 flex flex-col justify-end drop-shadow-xl">
-          <div className="h-16 w-24 self-end bg-yellow-500">logo</div>
+        <Card className="absolute left-0 top-0 z-10 flex flex-col justify-between drop-shadow-xl">
+          <div className="flex items-center justify-center gap-8">
+            <p className="flex items-center justify-center gap-2 whitespace-nowrap">
+              目前累計消費金額 : <span className="text-2xl">{consumption}</span>
+            </p>
+            <p className="flex items-center justify-center gap-2 whitespace-nowrap">
+              等級 : <span className="text-2xl">{0}</span>
+            </p>
+          </div>
           <div className="flex flex-col gap-4">
             <div>
               <p className="mb-2 uppercase">card number</p>
               <CardNumber />
-              {}
             </div>
             <div>
               <p className="mb-2 uppercase">exp. date</p>

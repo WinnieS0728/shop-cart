@@ -11,7 +11,7 @@ import {
   tagSetting_Schema,
 } from "@/libs/mongoDB/models/basic setting/tag";
 import { useQuery } from "@tanstack/react-query";
-import { useBasicSetting } from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 
@@ -19,7 +19,7 @@ export default function TagsSetting() {
   const {
     POST: { mutateAsync: createTag },
     DELETE: { mutateAsync: deleteTag },
-  } = useBasicSetting().tag;
+  } = useBasicSettingMethods().tag;
   const { data: tagSettingData, isPending } = useQuery<
     z.infer<typeof tagSetting_Schema>["tags"]
   >({

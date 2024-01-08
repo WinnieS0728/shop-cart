@@ -1,16 +1,16 @@
 "use client";
 import React from "react";
-import FormContainer from "../UI/form";
+import FormContainer from "@UI/form";
 import { FormProvider, useForm } from "react-hook-form";
-import { Label, InputText, InputPassword, InputSubmit } from "../UI/inputs";
+import { Label, InputText, InputPassword, InputSubmit } from "@UI/inputs";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn, signOut } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import HrWithText from "../UI/hr with text";
-import OtherSignInProvider from "./3rd party sign in";
+import HrWithText from "@UI/hr with text";
+import OtherSignInProvider from "@/components/users/3rd party sign in";
+import Link from "next/link";
 
 const signIn_schema = z.object({
   email: z.string().min(1, "請填寫  email").email("請填入正確 email 格式"),
@@ -28,7 +28,7 @@ export default function SignInForm() {
   const { handleSubmit } = methods;
 
   async function onSubmit(data: z.infer<typeof signIn_schema>) {
-    console.log(data);
+    // console.log(data);
     const res = await signIn("credentials", {
       ...data,
       redirect: false,
@@ -40,7 +40,7 @@ export default function SignInForm() {
     }
   }
   return (
-    <>
+    <section className="px-8">
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onSubmit)} title="登入">
           <div className="flex flex-col gap-4">
@@ -56,6 +56,12 @@ export default function SignInForm() {
           <OtherSignInProvider />
         </FormContainer>
       </FormProvider>
-    </>
+      <div className="flex items-center justify-center gap-4 p-4">
+        <p>還沒有帳號嗎 ? </p>
+        <Link className="button bg-yellow-500" href={"user/signUp"}>
+          建立帳號 !
+        </Link>
+      </div>
+    </section>
   );
 }

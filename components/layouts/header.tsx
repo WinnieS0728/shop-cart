@@ -6,7 +6,7 @@ export default function Header() {
     <header className="sticky top-0 z-10 w-full bg-red-500 p-2">
       <nav className="flex items-center justify-between">
         <Link
-          href={"/admin"}
+          href={"/admin/user"}
           className="aspect-square w-12 rounded-full bg-yellow-500"
         >
           avatar

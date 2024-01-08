@@ -81,7 +81,7 @@ function useDeleteTag() {
     })
 }
 
-export function useBasicSetting() {
+export function useBasicSettingMethods() {
     return {
         member: {
             POST: useCreateMember(),

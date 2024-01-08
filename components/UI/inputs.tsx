@@ -36,6 +36,7 @@ export function InputText({
   name,
   placeholder,
   className,
+  defaultValue = "",
   ...props
 }: inputProps) {
   const { control } = useFormContext();
@@ -43,6 +44,7 @@ export function InputText({
     <Controller
       control={control}
       name={name!}
+      defaultValue={defaultValue}
       render={({ field, fieldState: { error } }) => (
         <>
           <input
@@ -67,6 +69,7 @@ export function InputOnlyNumber({ name, className, ...props }: inputProps) {
       <Controller
         control={control}
         name={name!}
+        defaultValue={""}
         render={({ field, fieldState: { error } }) => (
           <>
             <input
@@ -110,6 +113,7 @@ export function InputPassword({ name, className, ...props }: inputProps) {
       <Controller
         control={control}
         name={name!}
+        defaultValue={""}
         render={({ field, fieldState: { error } }) => (
           <>
             <div className="flex items-center justify-center gap-2">
@@ -128,6 +132,7 @@ export function InputPassword({ name, className, ...props }: inputProps) {
                 onClick={() => {
                   setShowPassword((prev) => !prev);
                 }}
+                tabIndex={-1}
               >
                 {showPassword ? (
                   <eye.open className="text-xl" />

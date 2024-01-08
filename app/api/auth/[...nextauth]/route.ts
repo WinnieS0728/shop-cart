@@ -37,7 +37,8 @@ export const authOptions = {
                             id: user._id,
                             name: user.username,
                             email: user.email,
-                            image: user.avatar
+                            image: user.avatar,
+                            isMember: true
                         }
                     } catch (error) {
                         throw error
@@ -48,9 +49,36 @@ export const authOptions = {
         }),
         GoogleProvider({
             clientId: process.env.NEXTAUTH_GOOGLE_ID,
-            clientSecret: process.env.NEXTAUTH_GOOGLE_SECRET
+            clientSecret: process.env.NEXTAUTH_GOOGLE_SECRET,
         }),
-    ]
+    ],
+    callbacks: {
+        async signIn({ user }) {
+            try {
+                await connectToMongo('users')
+                const isUserExist = !!(await DB_USER.exists({
+                    email: {
+                        $eq: user.email
+                    }
+                }))
+                if (!isUserExist) {
+                    await DB_USER.create({
+                        username: user.name,
+                        email: user.email,
+                        avatar: user.image,
+                    })
+                }
+                return true
+            } catch (error) {
+                console.log(error);
+                return false
+            }
+        },
+    },
+    // pages: {
+    //     signIn: '/admin'
+    // }
+
 } satisfies NextAuthOptions
 
 const handler = NextAuth(authOptions)

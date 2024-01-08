@@ -9,7 +9,7 @@ import FormContainer from "@UI/form";
 import { memberSetting_Schema } from "@/libs/mongoDB/models/basic setting/member";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "../UI/loading";
-import { useBasicSetting } from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 
 export default function MemberSetting() {
@@ -17,7 +17,7 @@ export default function MemberSetting() {
     POST: { mutateAsync: createMember },
     PATCH: { mutateAsync: updateMember },
     DELETE: { mutateAsync: deleteMember },
-  } = useBasicSetting().member;
+  } = useBasicSettingMethods().member;
   const { data: memberSettingData, isPending } = useQuery<
     z.infer<typeof memberSetting_Schema>["member"]
   >({

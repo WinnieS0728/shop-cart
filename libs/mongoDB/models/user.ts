@@ -21,7 +21,8 @@ export const user_schema = z.object({
         security_code: z.string().refine((value) => (value.length === 0 || value.length === 3), {
             message: "安全碼錯誤"
         })
-    })
+    }),
+    consumption: z.number().min(0, '最低消費金額是 0')
 })
 
 export const signUp_schema = user_schema.pick({
@@ -42,7 +43,7 @@ const userModel = new Schema<z.infer<typeof user_schema>>({
     },
     password: {
         type: String,
-        required: true
+        default: ''
     },
     avatar: {
         type: String,
@@ -83,6 +84,12 @@ const userModel = new Schema<z.infer<typeof user_schema>>({
             default: ""
         }
     },
+    consumption: {
+        type: Number,
+        required: true,
+        default: 0,
+        min: [0, '最低累計消費金額是 0']
+    }
 }, {
     timestamps: true,
 })
