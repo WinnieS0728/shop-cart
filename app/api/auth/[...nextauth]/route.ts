@@ -1,12 +1,9 @@
-import { connectToMongo } from "@/libs/mongoDB/connect mongo"
-import DB_USER, { user_schema } from "@/libs/mongoDB/models/user"
+import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo"
 import NextAuth, { NextAuthOptions } from "next-auth"
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { z } from "zod"
-import { models } from "mongoose"
 
 export const authOptions = {
     // Configure one or more authentication providers
@@ -25,8 +22,8 @@ export const authOptions = {
                 if (credentials) {
                     const { email, password } = credentials
                     try {
-                        await connectToMongo('users')
-                        const user = await DB_USER.findOne({
+                        const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
+                        const user = await DB_user.findOne({
                             email: { $eq: email }
                         })
                         const pass = await bcrypt.compare(password, user?.password)
@@ -55,14 +52,14 @@ export const authOptions = {
     callbacks: {
         async signIn({ user }) {
             try {
-                await connectToMongo('users')
-                const isUserExist = !!(await DB_USER.exists({
+                const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
+                const isUserExist = !!(await DB_user.exists({
                     email: {
                         $eq: user.email
                     }
                 }))
                 if (!isUserExist) {
-                    await DB_USER.create({
+                    await DB_user.create({
                         username: user.name,
                         email: user.email,
                         avatar: user.image,

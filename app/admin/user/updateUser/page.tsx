@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
-import { user_schema } from "@/libs/mongoDB/models/user";
+import { user_schema } from "@/libs/mongoDB/schemas/user";
 import { z } from "zod";
 import { CreditCard } from "@UI/credit card";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,12 +12,21 @@ import { Session } from "next-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@UI/loading";
 import Link from "next/link";
+import { useUserMethods } from "@/app/api/mongoDB/users/methods";
+import { toast } from "react-toastify";
+import AvatarDropzone from "@/components/users/avatar dropzone";
+import { useEdgeStore } from "@/libs/edgestore";
+import Level from "@/components/users/level";
 
 interface props {
   session: Session;
 }
 
 export default function UpdateUserForm({ session }: props) {
+  const { edgestore } = useEdgeStore();
+  const {
+    UPDATE_USER: { mutateAsync: updateUser },
+  } = useUserMethods();
   const { data: userData, isPending } = useQuery<z.infer<typeof user_schema>>({
     queryKey: ["admin", "user", { key: "email", value: session.user!.email }],
     queryFn: async () => {
@@ -36,11 +45,55 @@ export default function UpdateUserForm({ session }: props) {
   });
   const {
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, defaultValues },
+    watch,
   } = methods;
 
   async function onSubmit(data: z.infer<typeof user_schema>) {
     console.log(data);
+    const request = new Promise(async (resolve, reject) => {
+      const res = await updateUser(data);
+      if (!res.ok) {
+        reject(await res.json());
+      } else {
+        if (!data.avatar.normal && !defaultValues?.avatar?.normal) {
+          // ? do nothing
+        } else if (!data.avatar.normal && defaultValues?.avatar?.normal) {
+          await edgestore.userAvatar.delete({
+            url: defaultValues.avatar.normal,
+          });
+        } else if (
+          defaultValues?.avatar?.normal &&
+          data.avatar.normal !== defaultValues.avatar.normal
+        ) {
+          await edgestore.userAvatar.confirmUpload({
+            url: data.avatar.normal,
+          });
+          await edgestore.userAvatar.delete({
+            url: defaultValues.avatar.normal,
+          });
+        } else {
+          await edgestore.userAvatar.confirmUpload({
+            url: data.avatar.normal,
+          });
+        }
+        resolve(await res.json());
+      }
+    });
+
+    toast.promise(request, {
+      pending: "更新中...",
+      error: {
+        render({ data }) {
+          return `${data}`;
+        },
+      },
+      success: {
+        render({ data }) {
+          return `${data}`;
+        },
+      },
+    });
   }
 
   return (
@@ -52,7 +105,7 @@ export default function UpdateUserForm({ session }: props) {
           ) : (
             <div className="flex flex-col gap-4">
               <fieldset className="flex items-center justify-center gap-8">
-                <div className="circle-icon w-1/3 bg-red-500">avatar</div>
+                <AvatarDropzone />
                 <div className="flex w-full flex-col gap-4">
                   <Label label="姓名" htmlFor="username" required>
                     <InputText name="username" id="username" />
@@ -61,7 +114,10 @@ export default function UpdateUserForm({ session }: props) {
                     <InputText name="email" id="email" readOnly />
                   </Label>
                   <Label label="密碼" required>
-                    <Link href={'user/updatePassword'} className="button bg-yellow-500 inline-block">
+                    <Link
+                      href={"user/updatePassword"}
+                      className="button inline-block bg-yellow-500"
+                    >
                       修改密碼
                     </Link>
                   </Label>
@@ -73,11 +129,16 @@ export default function UpdateUserForm({ session }: props) {
               <Label label="地址(選填)" htmlFor="address">
                 <InputText name="address" id="address" />
               </Label>
-              <Label label="付款方式(選填)" htmlFor="creditCard">
+              <Label label="付款方式(選填)" htmlFor="cardNumber">
                 <div className="flex justify-center">
                   <CreditCard />
                 </div>
               </Label>
+
+              <Label label="階級">
+                <Level />
+              </Label>
+
               <InputSubmit value="儲存" disabled={isSubmitting} />
             </div>
           )}

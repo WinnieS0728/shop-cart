@@ -29,15 +29,23 @@ export default function SignInForm() {
 
   async function onSubmit(data: z.infer<typeof signIn_schema>) {
     // console.log(data);
-    const res = await signIn("credentials", {
-      ...data,
-      redirect: false,
-    });
-    if (res && !res.ok) {
-      toast.error(res.error);
-    } else {
-      router.refresh();
-    }
+    const request = new Promise(async(resolve,reject) => {
+      const res = await signIn("credentials", {
+        ...data,
+        redirect: false,
+      });
+      if (res && !res.ok) {
+        reject(res.error)
+      } else {
+        resolve(true)
+        router.refresh();
+      }
+    })
+    toast.promise(request, {
+      pending: '登入中...',
+      success: '登入成功 !',
+      error: '登入失敗 !'
+    })
   }
   return (
     <section className="px-8">

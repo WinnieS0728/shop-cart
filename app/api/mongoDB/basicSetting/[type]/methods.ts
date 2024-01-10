@@ -1,6 +1,6 @@
-import { categoriesSetting_Schema } from "@/libs/mongoDB/models/basic setting/category";
-import { memberSetting_Schema } from "@/libs/mongoDB/models/basic setting/member";
-import { tagSetting_Schema } from "@/libs/mongoDB/models/basic setting/tag";
+import { categoriesSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/category";
+import { memberSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/member";
+import { tagSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 

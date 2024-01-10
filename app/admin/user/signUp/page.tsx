@@ -4,7 +4,7 @@ import FormContainer from "@UI/form";
 import { FormProvider, useForm } from "react-hook-form";
 import { Label, InputText, InputPassword, InputSubmit } from "@UI/inputs";
 import { z } from "zod";
-import { signUp_schema } from "@/libs/mongoDB/models/user";
+import { signUp_schema } from "@/libs/mongoDB/schemas/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useUserMethods } from "@/app/api/mongoDB/users/methods";
@@ -12,9 +12,11 @@ import { toast } from "react-toastify";
 import { useEdgeStore } from "@/libs/edgestore";
 import AvatarDropzone from "@/components/users/avatar dropzone";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const { edgestore } = useEdgeStore();
+  const { push } = useRouter()
   const {
     POST: { mutateAsync: createUser },
   } = useUserMethods();
@@ -24,18 +26,22 @@ export default function SignUp() {
       username: "",
       email: "",
       password: "",
-      avatar: "",
+      avatar: {
+        normal: '',
+        thumbnail: ''
+      },
     },
   });
   const { handleSubmit } = methods;
   async function onSubmit(data: z.infer<typeof signUp_schema>) {
-    const res = await createUser(data);
+    console.log(data);
     const request = new Promise(async (resolve, reject) => {
+      const res = await createUser(data);
       if (!res.ok) {
         reject(await res.json());
       } else {
         await edgestore.userAvatar.confirmUpload({
-          url: data.avatar,
+          url: data.avatar.normal,
         });
         resolve("註冊成功 !");
       }

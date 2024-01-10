@@ -1,5 +1,5 @@
 import { password_schema } from "@/app/admin/user/updatePassword/page";
-import { signUp_schema } from "@/libs/mongoDB/models/user";
+import { signUp_schema } from "@/libs/mongoDB/schemas/user";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -25,9 +25,24 @@ function useUpdatePassword() {
         })
     })
 }
+
+function useUpdateUserData() {
+    return useMutation({
+        mutationKey: ['admin', 'user', 'PATCH', { action: 'updateUserData', key: 'email' }],
+        mutationFn: async (data: z.infer<typeof signUp_schema>) => fetch(`/api/mongoDB/users/${data.email}`, {
+            method: "PATCH",
+            headers: {
+                "Content-type": 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+    })
+}
+
 export function useUserMethods() {
     return {
         POST: useCreateUser(),
-        UPDATE_PASSWORD: useUpdatePassword()
+        UPDATE_PASSWORD: useUpdatePassword(),
+        UPDATE_USER: useUpdateUserData()
     }
 }

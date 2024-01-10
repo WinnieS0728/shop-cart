@@ -20,7 +20,7 @@ export const tagSetting_Schema = z.object({
     }),
 })
 
-const tagSettingModel = new Schema<z.infer<typeof tagSetting_Schema>['tags'][number]>({
+const DB_basicSetting_tag = new Schema<z.infer<typeof tagSetting_Schema>['tags'][number]>({
     title: {
         type: String,
         required: true
@@ -29,6 +29,5 @@ const tagSettingModel = new Schema<z.infer<typeof tagSetting_Schema>['tags'][num
     timestamps: true
 })
 
-const DB_basicSetting_tag = models?.tags || model('tags', tagSettingModel)
 
 export default DB_basicSetting_tag

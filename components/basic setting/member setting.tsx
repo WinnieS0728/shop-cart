@@ -6,7 +6,7 @@ import { z } from "zod";
 import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { memberSetting_Schema } from "@/libs/mongoDB/models/basic setting/member";
+import { memberSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/member";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "../UI/loading";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";

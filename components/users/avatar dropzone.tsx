@@ -9,16 +9,16 @@ import { ProgressBar } from "../UI/progress bar";
 import * as icons from "@icons";
 
 export default function AvatarDropzone() {
+  const [objectUrl, setObjectUrl] = useState<string>("");
+  const [progress, setProgress] = useState<number>(0);
+
   const { control } = useFormContext();
   const {
-    field: { onChange },
+    field: { onChange, value },
   } = useController({
     control,
     name: "avatar",
   });
-  const [file, setFile] = useState<File>();
-  const [url, setUrl] = useState<string>("");
-  const [progress, setProgress] = useState<number>(0);
 
   const { edgestore } = useEdgeStore();
 
@@ -35,19 +35,31 @@ export default function AvatarDropzone() {
     return res;
   }
 
+  async function deleteImage(url: string) {
+    if (!url) {
+      return;
+    }
+    onChange({
+      normal: "",
+      thumbnail: "",
+    });
+  }
+
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
       accept: {
         "image/*": [".png", ".jpeg", ".webp", ".svg"],
       },
       maxSize: 1024 * 1024 * 5, // @ 5MB
-      onDrop: async (file) => {
-        if (file[0]) {
-          const objectUrl = URL.createObjectURL(file[0]);
-          setUrl(objectUrl);
-          setFile(file[0]);
-          const { thumbnailUrl } = await uploadImage(file[0]);
-          onChange(thumbnailUrl);
+      onDrop: async (fileList) => {
+        if (fileList[0]) {
+          const objectUrl = URL.createObjectURL(fileList[0]);
+          setObjectUrl(objectUrl);
+          const { url, thumbnailUrl } = await uploadImage(fileList[0]);
+          onChange({
+            normal: url,
+            thumbnail: thumbnailUrl,
+          });
         }
       },
     });
@@ -72,22 +84,22 @@ export default function AvatarDropzone() {
             "border-red-500": isDragReject,
             "border-green-500": isDragAccept,
             "border-blue-500": isFocused,
-            "p-0": file,
+            "p-0": value?.thumbnail || objectUrl,
           },
         )}
         {...getRootProps()}
       >
         <input {...getInputProps()} />
-        {file ? (
+        {value?.thumbnail || objectUrl ? (
           <Image
-            src={url}
+            src={objectUrl || value.thumbnail}
             className="aspect-square w-full rounded-full object-cover"
             alt="image"
             width={300}
             height={300}
             priority
             onLoad={() => {
-              URL.revokeObjectURL(url);
+              URL.revokeObjectURL(objectUrl);
             }}
           />
         ) : (
@@ -106,8 +118,9 @@ export default function AvatarDropzone() {
         type="button"
         className="absolute -right-2 -top-2 flex aspect-square w-8 items-center justify-center rounded-full bg-red-500 text-white"
         onClick={() => {
-          setFile(undefined);
           setProgress(0);
+          setObjectUrl('')
+          deleteImage(value.normal);
         }}
       >
         <icons.Close className="text-xl" />

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { categoriesSetting_Schema } from "@/libs/mongoDB/models/basic setting/category";
+import { categoriesSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { useQuery } from "@tanstack/react-query";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";

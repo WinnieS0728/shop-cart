@@ -1,15 +1,13 @@
-import { connectToMongo } from "@/libs/mongoDB/connect mongo";
-import DB_PRODUCT from "@/libs/mongoDB/models/product";
-import { disconnect } from "mongoose";
+import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const data = await req.json();
 
   try {
-    await connectToMongo("products");
-    await DB_PRODUCT.create(data);
-    disconnect()
+    const { models: { [`${modelList.products}`]: DB_product } } = connectToMongo("products");
+    await DB_product.create(data);
+    
     return NextResponse.json("ok", {
       status: 201,
     });

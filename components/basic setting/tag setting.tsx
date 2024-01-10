@@ -9,7 +9,7 @@ import FormContainer from "@UI/form";
 import {
   tagModel,
   tagSetting_Schema,
-} from "@/libs/mongoDB/models/basic setting/tag";
+} from "@/libs/mongoDB/schemas/basic setting/tag";
 import { useQuery } from "@tanstack/react-query";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";

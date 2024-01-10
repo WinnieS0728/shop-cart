@@ -10,6 +10,8 @@ const es = initEdgeStore.create();
 const edgeStoreRouter = es.router({
   userAvatar: es.imageBucket({
     maxSize: 1024 * 1024 * 5, // @ 5MB
+  }).beforeDelete(()=>{
+    return true
   })
 });
 

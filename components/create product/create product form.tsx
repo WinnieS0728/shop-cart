@@ -4,7 +4,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ImageDropzone from "./ImageDropzone";
 import { z } from "zod";
-import { product_schema } from "@/libs/mongoDB/models/product";
+import { product_schema } from "@/libs/mongoDB/schemas/product";
 import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
 import { useEdgeStore } from "@/libs/edgestore";
 import { ReactAsyncSelect, ReactSelect } from "@components/UI/select";

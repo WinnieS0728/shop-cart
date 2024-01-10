@@ -35,7 +35,7 @@ export const memberSetting_Schema = z.object({
         })
 })
 
-const memberSettingModel = new Schema<z.infer<typeof memberSetting_Schema>['member'][number]>(
+const DB_basicSetting_member = new Schema<z.infer<typeof memberSetting_Schema>['member'][number]>(
     {
         title: {
             type: String,
@@ -50,7 +50,5 @@ const memberSettingModel = new Schema<z.infer<typeof memberSetting_Schema>['memb
     timestamps: true
 }
 )
-
-const DB_basicSetting_member = models?.members || model('members', memberSettingModel)
 
 export default DB_basicSetting_member

@@ -5,7 +5,7 @@ import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { UseFormSetValue } from "react-hook-form";
-import { product_schema } from "@/libs/mongoDB/models/product";
+import { product_schema } from "@/libs/mongoDB/schemas/product";
 import { z } from "zod";
 import { ProgressBar } from "../UI/progress bar";
 

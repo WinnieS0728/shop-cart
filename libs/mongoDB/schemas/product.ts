@@ -12,7 +12,7 @@ export const product_schema = z.object({
     tags: z.array(z.string())
 })
 
-const productModel = new Schema<z.infer<typeof product_schema>>({
+const DB_product = new Schema<z.infer<typeof product_schema>>({
     title: {
         type: String,
         required: true
@@ -44,6 +44,4 @@ const productModel = new Schema<z.infer<typeof product_schema>>({
     timestamps: true,
 })
 
-const DB_PRODUCT = model('products', productModel)
-
-export default DB_PRODUCT
+export default DB_product
