@@ -67,10 +67,10 @@ export default function CreateProductForm() {
   }
 
   async function confirmImageUpload(url: string) {
-    await edgestore.publicImages.confirmUpload({
+    await edgestore.productImage.confirmUpload({
       url: url,
     });
-  }
+  }œœ
 
   return (
     <>

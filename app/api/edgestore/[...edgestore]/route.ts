@@ -10,9 +10,10 @@ const es = initEdgeStore.create();
 const edgeStoreRouter = es.router({
   userAvatar: es.imageBucket({
     maxSize: 1024 * 1024 * 5, // @ 5MB
-  }).beforeDelete(()=>{
-    return true
-  })
+  }).beforeDelete(() => true),
+  productImage: es.imageBucket({
+    maxSize: 1024 * 1024 * 10 // @ 10MB
+  }).beforeDelete(() => true)
 });
 
 const handler = createEdgeStoreNextHandler({

@@ -1,4 +1,8 @@
-import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo";
+import {
+  connectToMongo,
+  collectionList,
+  dbList,
+} from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
@@ -10,21 +14,22 @@ interface params {
 
 export async function PATCH(req: NextRequest, { params: { email } }: params) {
   const requestBody = await req.json();
-  try {
-    const { models: {[`${modelList.users}`]: DB_user} } = connectToMongo("users");
+  const conn = connectToMongo(dbList.users);
+  const {
+    models: { [`${collectionList.users}`]: DB_user },
+  } = conn;
 
+  try {
     const userData = await DB_user.findOne({ email: { $eq: email } }).select(
       "password",
     );
     if (!userData) {
-      
       return NextResponse.json("查無使用者", { status: 400 });
     }
 
     if (
       !(await bcrypt.compare(requestBody.origin_password, userData.password))
     ) {
-      
       return NextResponse.json("舊密碼輸入錯誤", { status: 400 });
     }
     const newPassword = await bcrypt.hash(requestBody.confirm_password, 10);
@@ -34,16 +39,18 @@ export async function PATCH(req: NextRequest, { params: { email } }: params) {
       },
       {
         $set: {
-          password: newPassword
-        }
+          password: newPassword,
+        },
       },
       {
-        runValidators: true
-      }
+        runValidators: true,
+      },
     );
-    
+
     return NextResponse.json("修改成功", { status: 200 });
   } catch (error) {
     return NextResponse.json(error, { status: 400 });
+  } finally {
+    await conn.close()
   }
 }

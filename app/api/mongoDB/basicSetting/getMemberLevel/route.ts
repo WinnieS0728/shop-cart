@@ -1,14 +1,14 @@
-import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo, collectionList, dbList } from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     const consumption = Number(req.nextUrl.searchParams.get('consumption')) ?? 0
     // console.log(consumption);
-
+    const conn = connectToMongo(dbList.basicSetting)
+    const { models: {
+        [`${collectionList.members}`]: DB_basicSetting_member
+    } } = conn
     try {
-        const { models: {
-            [`${modelList.members}`]: DB_basicSetting_member
-        } } = connectToMongo('basic-setting')
         const prevLevel = await DB_basicSetting_member.findOne({
             threshold: {
                 $lte: consumption
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
             threshold: {
                 $gt: consumption
             }
-        }).sort({threshold: 1}).limit(1).select(['title', 'threshold']).lean()
+        }).sort({ threshold: 1 }).limit(1).select(['title', 'threshold']).lean()
 
         return NextResponse.json({
             prev: prevLevel,
@@ -26,5 +26,7 @@ export async function GET(req: NextRequest) {
         }, { status: 200 })
     } catch (error) {
         return NextResponse.json(error, { status: 400 })
+    } finally {
+        await conn.close()
     }
 }

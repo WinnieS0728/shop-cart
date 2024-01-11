@@ -1,13 +1,14 @@
-import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo, collectionList, dbList } from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from 'bcryptjs'
 export async function POST(req: NextRequest) {
     const requestBody = await req.json()
     const email = requestBody.email
     const hashedPassword = await bcrypt.hash(requestBody.password, 10);
+    const conn = connectToMongo(dbList.users)
+    const { models: { [`${collectionList.users}`]: DB_user } } = conn
 
     try {
-        const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
         const isUserExist = await DB_user.exists({
             email: {
                 $eq: email
@@ -28,5 +29,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json("建立失敗 !", {
             status: 500
         })
+    } finally {
+        await conn.close()
     }
 }

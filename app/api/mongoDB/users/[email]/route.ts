@@ -1,4 +1,4 @@
-import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo, collectionList, dbList } from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 
 interface params {
@@ -8,8 +8,9 @@ interface params {
 }
 
 export async function GET(req: NextRequest, { params: { email } }: params) {
+    const conn = connectToMongo(dbList.users)
+    const { models: { [`${collectionList.users}`]: DB_user } } = conn
     try {
-        const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
         const user = await DB_user.findOne({ email: { $eq: email } })
         if (!user) {
 
@@ -20,14 +21,17 @@ export async function GET(req: NextRequest, { params: { email } }: params) {
     } catch (error) {
         console.log(error);
         return NextResponse.json(error, { status: 400 })
+    } finally {
+        await conn.close()
     }
 }
 
 export async function PATCH(req: NextRequest, { params: { email } }: params) {
     const requestBody = await req.json()
+    const conn = connectToMongo(dbList.users)
+    const { models: { [`${collectionList.users}`]: DB_user } } = conn
 
     try {
-        const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
         await DB_user.findOneAndUpdate({
             email: {
                 $eq: email
@@ -49,5 +53,7 @@ export async function PATCH(req: NextRequest, { params: { email } }: params) {
     } catch (error) {
         console.log(error);
         return NextResponse.json(error, { status: 400 })
+    } finally {
+        await conn.close()
     }
 }

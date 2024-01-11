@@ -42,7 +42,7 @@ export const signUp_schema = user_schema.pick({
     avatar: true
 })
 
-const DB_user = new Schema<z.infer<typeof user_schema>>({
+const DB_user_schema = new Schema<z.infer<typeof user_schema>>({
     username: {
         type: String,
         required: true
@@ -105,4 +105,4 @@ const DB_user = new Schema<z.infer<typeof user_schema>>({
     timestamps: true,
 })
 
-export default DB_user
+export default DB_user_schema

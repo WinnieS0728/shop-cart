@@ -20,7 +20,7 @@ export const categoriesSetting_Schema = z.object({
     }),
 })
 
-const DB_basicSetting_category = new Schema<z.infer<typeof categoriesSetting_Schema>['categories'][number]>({
+const DB_basicSetting_category_schema = new Schema<z.infer<typeof categoriesSetting_Schema>['categories'][number]>({
     title: {
         type: String,
         required: true
@@ -29,4 +29,4 @@ const DB_basicSetting_category = new Schema<z.infer<typeof categoriesSetting_Sch
     timestamps: true
 })
 
-export default DB_basicSetting_category
+export default DB_basicSetting_category_schema

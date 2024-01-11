@@ -20,7 +20,7 @@ export const tagSetting_Schema = z.object({
     }),
 })
 
-const DB_basicSetting_tag = new Schema<z.infer<typeof tagSetting_Schema>['tags'][number]>({
+const DB_basicSetting_tag_schema = new Schema<z.infer<typeof tagSetting_Schema>['tags'][number]>({
     title: {
         type: String,
         required: true
@@ -30,4 +30,4 @@ const DB_basicSetting_tag = new Schema<z.infer<typeof tagSetting_Schema>['tags']
 })
 
 
-export default DB_basicSetting_tag
+export default DB_basicSetting_tag_schema

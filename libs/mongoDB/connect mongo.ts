@@ -1,13 +1,9 @@
 import mongoose from "mongoose";
-import DB_user from "./schemas/user";
-import DB_basicSetting_category from "./schemas/basic setting/category";
-import DB_basicSetting_member from "./schemas/basic setting/member";
-import DB_basicSetting_tag from "./schemas/basic setting/tag";
-import DB_product from "./schemas/product";
+import { DB_schemaList } from "./schemas";
 
-type myDataBase = "users" | 'products' | 'basic-setting'
+export const dbList = { users : "users", products: "products", basicSetting: "basic-setting"} as const
 
-export const modelList = {
+export const collectionList = {
     categories: 'categories',
     members: 'members',
     tags: 'tags',
@@ -15,24 +11,25 @@ export const modelList = {
     products: 'products'
 } as const
 
-export function connectToMongo(dbName: myDataBase) {
-    const conn = mongoose.createConnection(`${process.env.MONGO_URL}/${dbName}`)
-    conn.on('connected', () => console.log(`connect to ${dbName} success !`))
-    conn.on('close', (error) => console.log(`close ${dbName} success !`, error))
-    conn.on('disconnected', () => console.log(`disconnect to ${dbName} !`))
+export function connectToMongo(dbName: typeof dbList[keyof typeof dbList]) {
+    const conn = mongoose.createConnection(`${process.env.MONGO_URL}`, {
+        dbName
+    })
+    conn.once('connected', () => console.log(`connect to ${dbName} success !`))
+    conn.once('close', () => console.log(`${dbName} closed !`))
     conn.on('error', (error) => console.log(`connect to ${dbName} fail !`, error))
 
     switch (dbName) {
         case 'basic-setting':
-            conn.model(modelList.categories, DB_basicSetting_category)
-            conn.model(modelList.members, DB_basicSetting_member)
-            conn.model(modelList.tags, DB_basicSetting_tag)
+            conn.model(collectionList.categories, DB_schemaList.basicSetting.categories)
+            conn.model(collectionList.members, DB_schemaList.basicSetting.members)
+            conn.model(collectionList.tags, DB_schemaList.basicSetting.tags)
             break;
         case 'users':
-            conn.model(modelList.users, DB_user)
+            conn.model(collectionList.users, DB_schemaList.users)
             break;
         case 'products':
-            conn.model(modelList.products, DB_product)
+            conn.model(collectionList.products, DB_schemaList.products)
             break;
         default:
             console.log('no model should be connect !');

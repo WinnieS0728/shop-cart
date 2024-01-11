@@ -1,9 +1,11 @@
-import { connectToMongo, modelList } from "@/libs/mongoDB/connect mongo"
+import { connectToMongo, dbList, collectionList } from "@/libs/mongoDB/connect mongo"
 import NextAuth, { NextAuthOptions } from "next-auth"
 import bcrypt from 'bcryptjs'
 
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
+import { createConnection } from "mongoose"
+import DB_user_schema from "@/libs/mongoDB/schemas/user"
 
 export const authOptions = {
     // Configure one or more authentication providers
@@ -21,8 +23,11 @@ export const authOptions = {
             async authorize(credentials) {
                 if (credentials) {
                     const { email, password } = credentials
+                    const conn = createConnection(`${process.env.MONGO_URL}`, {
+                        dbName: dbList.users
+                    })
                     try {
-                        const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
+                        conn.model(collectionList.users, DB_user_schema)
                         const user = await DB_user.findOne({
                             email: { $eq: email }
                         })
@@ -52,7 +57,7 @@ export const authOptions = {
     callbacks: {
         async signIn({ user }) {
             try {
-                const { models: { [`${modelList.users}`]: DB_user } } = connectToMongo('users')
+                const { models: { [`${collectionList.users}`]: DB_user } } = connectToMongo('users')
                 const isUserExist = !!(await DB_user.exists({
                     email: {
                         $eq: user.email

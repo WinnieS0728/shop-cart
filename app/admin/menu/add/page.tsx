@@ -1,4 +1,4 @@
-import CreateProductForm from "@/components/create product/create product form";
+import CreateProductForm from "@/components/products/create product form";
 import Link from "next/link";
 import React from "react";
 
