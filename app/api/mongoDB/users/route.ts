@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
     const requestBody = await req.json()
     const email = requestBody.email
     const hashedPassword = await bcrypt.hash(requestBody.password, 10);
-    const conn = connectToMongo(dbList.users)
+    const conn = connectToMongo('users')
     const { models: { [`${collectionList.users}`]: DB_user } } = conn
 
     try {

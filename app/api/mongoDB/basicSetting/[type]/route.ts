@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 type params = {
     params: {
-        type: "member" | 'category' | 'tag'
+        type: Extract<typeof collectionList[keyof typeof collectionList], "members" | 'categories' | 'tags'>
     }
 }
 
 export async function GET(req: NextRequest, { params: { type } }: params) {
-    const conn = connectToMongo(dbList.basicSetting)
+    const conn = connectToMongo('basicSetting')
     const { models: {
         [`${collectionList.members}`]: DB_basicSetting_member,
         [`${collectionList.categories}`]: DB_basicSetting_category,
@@ -17,13 +17,13 @@ export async function GET(req: NextRequest, { params: { type } }: params) {
 
     try {
         switch (type) {
-            case 'member':
+            case 'members':
                 const member_res = await DB_basicSetting_member.find().sort({ threshold: 1 }).lean()
                 return NextResponse.json(member_res, { status: 200 })
-            case "category":
+            case "categories":
                 const categories_res = await DB_basicSetting_category.find().lean()
                 return NextResponse.json(categories_res, { status: 200 })
-            case 'tag':
+            case 'tags':
                 const tag_res = await DB_basicSetting_tag.find().lean()
                 return NextResponse.json(tag_res, { status: 200 })
             default:
@@ -48,18 +48,18 @@ export async function GET2(req: NextRequest, { params: { type } }: params) {
         members: DB_basicSetting_member,
         categories: DB_basicSetting_category,
         tags: DB_basicSetting_tag
-    }, ...other } = connectToMongo('basic-setting')
+    }, ...other } = connectToMongo('basicSetting')
     // console.log(other.close);
 
     try {
         switch (type) {
-            case 'member':
+            case 'members':
                 const member_res = await DB_basicSetting_member.find().sort({ threshold: 1 }).lean()
                 return NextResponse.json(member_res, { status: 200 })
-            case "category":
+            case "categories":
                 const categories_res = await DB_basicSetting_category.find().lean()
                 return NextResponse.json(categories_res, { status: 200 })
-            case 'tag':
+            case 'tags':
                 const tag_res = await DB_basicSetting_tag.find().lean()
                 return NextResponse.json(tag_res, { status: 200 })
             default:
@@ -75,7 +75,7 @@ export async function GET2(req: NextRequest, { params: { type } }: params) {
 
 export async function POST(req: NextRequest, { params: { type } }: params) {
     const requestBody = await req.json()
-    const conn = connectToMongo(dbList.basicSetting)
+    const conn = connectToMongo('basicSetting')
     const { models: {
         [`${collectionList.members}`]: DB_basicSetting_member,
         [`${collectionList.categories}`]: DB_basicSetting_category,
@@ -83,13 +83,13 @@ export async function POST(req: NextRequest, { params: { type } }: params) {
     } } = conn
     try {
         switch (type) {
-            case 'member':
+            case 'members':
                 await DB_basicSetting_member.create(requestBody)
                 return NextResponse.json('建立成功', { status: 201 })
-            case 'category':
+            case 'categories':
                 await DB_basicSetting_category.create(requestBody)
                 return NextResponse.json('建立成功', { status: 201 })
-            case 'tag':
+            case 'tags':
                 await DB_basicSetting_tag.create(requestBody)
                 return NextResponse.json('建立成功', { status: 201 })
             default:
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest, { params: { type } }: params) {
 export async function DELETE(req: NextRequest, { params: { type } }: params) {
     const searchParams = req.nextUrl.searchParams;
     const deleteTitle = searchParams.get('title')
-    const conn = connectToMongo(dbList.basicSetting)
+    const conn = connectToMongo('basicSetting')
     const { models: {
         [`${collectionList.members}`]: DB_basicSetting_member,
         [`${collectionList.categories}`]: DB_basicSetting_category,
@@ -113,7 +113,7 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
     } } = conn
     try {
         switch (type) {
-            case 'member':
+            case 'members':
                 await DB_basicSetting_member.findOneAndDelete({
                     title: {
                         $eq: deleteTitle
@@ -122,7 +122,7 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
                 return NextResponse.json('刪除成功', {
                     status: 200
                 })
-            case 'category':
+            case 'categories':
                 await DB_basicSetting_category.findOneAndDelete({
                     title: {
                         $eq: deleteTitle
@@ -131,7 +131,7 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
                 return NextResponse.json('刪除成功', {
                     status: 200
                 })
-            case 'tag':
+            case 'tags':
                 await DB_basicSetting_tag.findOneAndDelete({
                     title: {
                         $eq: deleteTitle
@@ -159,13 +159,13 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
 export async function PATCH(req: NextRequest, { params: { type } }: params) {
     const requestBody = await req.json()
     // console.log(requestBody);
-    const conn = connectToMongo(dbList.basicSetting)
+    const conn = connectToMongo("basicSetting")
     const { models: {
         [`${collectionList.members}`]: DB_basicSetting_member,
     } } = conn
     try {
         switch (type) {
-            case 'member':
+            case 'members':
                 await DB_basicSetting_member.findOneAndUpdate({
                     title: {
                         $eq: requestBody.title

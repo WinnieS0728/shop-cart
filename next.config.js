@@ -7,6 +7,11 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'files.edgestore.dev',
                 pathname: '/t9sauqldw2t9najq/userAvatar/_public/*'
+            },
+            {
+                protocol: 'https',
+                hostname: 'files.edgestore.dev',
+                pathname: '/t9sauqldw2t9najq/productImage/_public/*'
             }
         ]
     }

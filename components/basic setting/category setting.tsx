@@ -7,25 +7,18 @@ import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
 import { categoriesSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/category";
-import { useQuery } from "@tanstack/react-query";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
+import { collectionList } from "@/libs/mongoDB/connect mongo";
 
 export default function CategorySetting() {
   const {
+    GET: {data: categorySettingData, isPending},
     POST: { mutateAsync: createCategory },
     DELETE: { mutateAsync: deleteCategory },
   } = useBasicSettingMethods().category;
-  const { data: categorySettingData, isPending } = useQuery<
-    z.infer<typeof categoriesSetting_Schema>["categories"]
-  >({
-    queryKey: ["admin", "basicSetting", "category"],
-    queryFn: async () => {
-      const res = await fetch("/api/mongoDB/basicSetting/category");
-      return res.json();
-    },
-  });
+
   const methods = useForm<z.infer<typeof categoriesSetting_Schema>>({
     resolver: zodResolver(categoriesSetting_Schema),
     shouldUnregister: true,
@@ -34,7 +27,7 @@ export default function CategorySetting() {
           categories: categorySettingData,
         }
       : async () => {
-          const res = await fetch("/api/mongoDB/basicSetting/category");
+          const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.categories}`);
           return {
             categories: await res.json(),
           };

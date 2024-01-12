@@ -35,10 +35,7 @@ export default function AvatarDropzone() {
     return res;
   }
 
-  async function deleteImage(url: string) {
-    if (!url) {
-      return;
-    }
+  async function deleteImage() {
     onChange({
       normal: "",
       thumbnail: "",
@@ -98,6 +95,7 @@ export default function AvatarDropzone() {
             width={300}
             height={300}
             priority
+
             onLoad={() => {
               URL.revokeObjectURL(objectUrl);
             }}
@@ -116,11 +114,11 @@ export default function AvatarDropzone() {
       )}
       <button
         type="button"
-        className="absolute -right-2 -top-2 flex aspect-square w-8 items-center justify-center rounded-full bg-red-500 text-white"
+        className="absolute -right-0 -top-0 flex aspect-square w-8 items-center justify-center rounded-full bg-red-500 text-white"
         onClick={() => {
           setProgress(0);
           setObjectUrl('')
-          deleteImage(value.normal);
+          deleteImage();
         }}
       >
         <icons.Close className="text-xl" />

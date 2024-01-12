@@ -6,16 +6,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <main>
       <nav className="flex items-center justify-center gap-4 p-4">
         <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/user"}>
-          profile
+          會員資料
         </Link>
         <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/setting"}>
-          setting
+          基本設定
         </Link>
         <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/menu"}>
-          menu
+          產品清單
         </Link>
         <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin/order"}>
-          order
+          訂單管理
         </Link>
       </nav>
       {children}

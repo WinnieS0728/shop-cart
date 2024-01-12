@@ -7,26 +7,18 @@ import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
 import { memberSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/member";
-import { useQuery } from "@tanstack/react-query";
 import { Loading } from "../UI/loading";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
+import { collectionList } from "@/libs/mongoDB/connect mongo";
 
 export default function MemberSetting() {
   const {
+    GET: { data: memberSettingData, isPending },
     POST: { mutateAsync: createMember },
     PATCH: { mutateAsync: updateMember },
     DELETE: { mutateAsync: deleteMember },
   } = useBasicSettingMethods().member;
-  const { data: memberSettingData, isPending } = useQuery<
-    z.infer<typeof memberSetting_Schema>["member"]
-  >({
-    queryKey: ["admin", "basicSetting", "member"],
-    queryFn: async () => {
-      const res = await fetch("/api/mongoDB/basicSetting/member");
-      return res.json();
-    },
-  });
 
   const methods = useForm<z.infer<typeof memberSetting_Schema>>({
     resolver: zodResolver(memberSetting_Schema),
@@ -36,7 +28,7 @@ export default function MemberSetting() {
           member: memberSettingData,
         }
       : async () => {
-          const res = await fetch("/api/mongoDB/basicSetting/member");
+          const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.members}`);
           return {
             member: await res.json(),
           };
@@ -55,18 +47,21 @@ export default function MemberSetting() {
   });
 
   async function onSubmit(data: z.infer<typeof memberSetting_Schema>) {
-    const shouldDelete = memberSettingData!.filter(
+    if (!memberSettingData) {
+      return 
+    }
+    const shouldDelete = memberSettingData.filter(
       (dataInDB) =>
         !data.member.some((dataInForm) => dataInForm.title === dataInDB.title),
     );
     const shouldUpdate = data.member.filter((dataInform) =>
-      memberSettingData!.some(
+      memberSettingData.some(
         (dataInDB) => dataInDB.title === dataInform.title,
       ),
     );
     const shouldCreate = data.member.filter(
       (dataInform) =>
-        !memberSettingData!.some(
+        !memberSettingData.some(
           (dataInDB) => dataInDB.title === dataInform.title,
         ),
     );

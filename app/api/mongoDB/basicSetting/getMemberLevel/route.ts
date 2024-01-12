@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
     const consumption = Number(req.nextUrl.searchParams.get('consumption')) ?? 0
     // console.log(consumption);
-    const conn = connectToMongo(dbList.basicSetting)
+    const conn = connectToMongo("basicSetting")
     const { models: {
         [`${collectionList.members}`]: DB_basicSetting_member
     } } = conn

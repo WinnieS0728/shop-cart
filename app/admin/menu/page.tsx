@@ -1,8 +1,6 @@
-"use client";
-import { ReactSelect } from "@/components/UI/select";
+import ProductList from "@/components/products/product list";
 import Link from "next/link";
 import React from "react";
-import Select, { components } from "react-select";
 
 export default function MenuPage() {
   return (
@@ -11,6 +9,9 @@ export default function MenuPage() {
       <Link href={"menu/add"} className="add-new-btn block text-center">
         + add new product
       </Link>
+      <section>
+        <ProductList />
+      </section>
     </section>
   );
 }

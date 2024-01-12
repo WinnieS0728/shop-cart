@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { DB_schemaList } from "./schemas";
 
-export const dbList = { users : "users", products: "products", basicSetting: "basic-setting"} as const
+export const dbList = { users : "users", products: "products", basicSetting: "basicSetting"} as const
 
 export const collectionList = {
     categories: 'categories',
@@ -20,7 +20,7 @@ export function connectToMongo(dbName: typeof dbList[keyof typeof dbList]) {
     conn.on('error', (error) => console.log(`connect to ${dbName} fail !`, error))
 
     switch (dbName) {
-        case 'basic-setting':
+        case 'basicSetting':
             conn.model(collectionList.categories, DB_schemaList.basicSetting.categories)
             conn.model(collectionList.members, DB_schemaList.basicSetting.members)
             conn.model(collectionList.tags, DB_schemaList.basicSetting.tags)

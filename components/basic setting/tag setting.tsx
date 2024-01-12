@@ -6,29 +6,19 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import {
-  tagModel,
-  tagSetting_Schema,
-} from "@/libs/mongoDB/schemas/basic setting/tag";
-import { useQuery } from "@tanstack/react-query";
+import { tagSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
+import { collectionList } from "@/libs/mongoDB/connect mongo";
 
 export default function TagsSetting() {
   const {
+    GET: { data: tagSettingData, isPending },
     POST: { mutateAsync: createTag },
     DELETE: { mutateAsync: deleteTag },
   } = useBasicSettingMethods().tag;
-  const { data: tagSettingData, isPending } = useQuery<
-    z.infer<typeof tagSetting_Schema>["tags"]
-  >({
-    queryKey: ["admin", "basicSetting", "tag"],
-    queryFn: async () => {
-      const res = await fetch("/api/mongoDB/basicSetting/tag");
-      return res.json();
-    },
-  });
+
   const methods = useForm<z.infer<typeof tagSetting_Schema>>({
     resolver: zodResolver(tagSetting_Schema),
     defaultValues: tagSettingData
@@ -36,7 +26,9 @@ export default function TagsSetting() {
           tags: tagSettingData,
         }
       : async () => {
-          const res = await fetch("/api/mongoDB/basicSetting/tag");
+          const res = await fetch(
+            `/api/mongoDB/basicSetting/${collectionList.tags}`,
+          );
           return {
             tags: await res.json(),
           };

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import { user_schema } from "@/libs/mongoDB/schemas/user";
 import { z } from "zod";
@@ -16,7 +16,7 @@ import { useUserMethods } from "@/app/api/mongoDB/users/methods";
 import { toast } from "react-toastify";
 import AvatarDropzone from "@/components/users/avatar dropzone";
 import { useEdgeStore } from "@/libs/edgestore";
-import Level from "@/components/users/level";
+import LevelSection from "@/components/users/level";
 
 interface props {
   session: Session;
@@ -136,7 +136,7 @@ export default function UpdateUserForm({ session }: props) {
               </Label>
 
               <Label label="階級">
-                <Level />
+                <LevelSection />
               </Label>
 
               <InputSubmit value="儲存" disabled={isSubmitting} />

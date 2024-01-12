@@ -2,7 +2,7 @@
 import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ImageDropzone from "./ImageDropzone";
+import ImageDropzone from "./product img dropzone";
 import { z } from "zod";
 import { product_schema } from "@/libs/mongoDB/schemas/product";
 import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
@@ -10,8 +10,20 @@ import { useEdgeStore } from "@/libs/edgestore";
 import { ReactAsyncSelect, ReactSelect } from "@components/UI/select";
 import { toast } from "react-toastify";
 import FormContainer from "../UI/form";
+import ProductImgDropzone from "./product img dropzone";
+import { useProductMethods } from "@/app/api/mongoDB/products/methods";
+import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 export default function CreateProductForm() {
   const { edgestore } = useEdgeStore();
+  const {
+    POST: { mutateAsync: createNewProduct },
+  } = useProductMethods();
+  const {
+    GET: { data: categoryList, isPending: isGetCategoryLoading },
+  } = useBasicSettingMethods().category;
+  const {
+    GET: { data: tagList, isPending: isGetTagsLoading },
+  } = useBasicSettingMethods().tag;
 
   const methods = useForm<z.infer<typeof product_schema>>({
     resolver: zodResolver(product_schema),
@@ -23,17 +35,19 @@ export default function CreateProductForm() {
       price: 0,
       stock: 0,
       sold: 0,
-      imageUrl: "",
+      imageUrl: {
+        normal: "",
+        thumbnail: "",
+      },
       tags: [],
     },
   });
 
   const {
     handleSubmit,
-    setValue,
     watch,
     control,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = methods;
 
   function getIsImageUploadDone() {
@@ -42,35 +56,34 @@ export default function CreateProductForm() {
 
   async function onSubmit(data: z.infer<typeof product_schema>) {
     console.log(data);
-    // const request = new Promise(async (resolve, reject) => {
-    //   const res = await fetch("/api/mongoDB/products", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-type": "application/json",
-    //     },
-    //     body: JSON.stringify(data),
-    //   });
+    const request = new Promise(async (resolve, reject) => {
+      const res = await createNewProduct(data);
 
-    //   await confirmImageUpload(data.imageUrl);
-    //   if (res.ok) {
-    //     resolve(true);
-    //   } else {
-    //     reject(false);
-    //   }
-    // });
+      if (!res.ok) {
+        reject(false);
+      }
 
-    // toast.promise(request, {
-    //   pending: "建立中...",
-    //   success: "建立完成",
-    //   error: "建立失敗",
-    // });
+      try {
+        await confirmImageUpload(data.imageUrl.normal);
+        resolve(true);
+      } catch (error) {
+        console.log(error);
+        reject(false);
+      }
+    });
+
+    toast.promise(request, {
+      pending: "建立中...",
+      success: "建立完成",
+      error: "建立失敗",
+    });
   }
 
   async function confirmImageUpload(url: string) {
     await edgestore.productImage.confirmUpload({
       url: url,
     });
-  }œœ
+  }
 
   return (
     <>
@@ -79,34 +92,75 @@ export default function CreateProductForm() {
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-2"
         >
-          <div className="flex items-center gap-4">
-            <ImageDropzone setImageUrl={setValue} />
+          <div className="flex items-center gap-8">
+            <ProductImgDropzone />
             <div className="flex w-full flex-col gap-2">
               <Label label="產品名稱" required>
-                <InputText name="title" error={errors.title?.message} />
+                <InputText name="title" />
               </Label>
               <Label label="產品內容">
-                <InputText name="content" error={errors.content?.message} />
+                <InputText name="content" />
               </Label>
               <Label label="產品分類">
                 <Controller
                   control={control}
                   name="category"
-                  render={({ field: { onChange } }) => <ReactSelect isMulti />}
+                  render={({ field: { onChange } }) => (
+                    <ReactSelect
+                      name="categoryList"
+                      options={categoryList}
+                      isLoading={isGetCategoryLoading}
+                      placeholder="選擇分類..."
+                      getOptionLabel={(option) =>
+                        (option as NonNullable<typeof categoryList>[number])
+                          .title
+                      }
+                      getOptionValue={(option) =>
+                        (option as NonNullable<typeof categoryList>[number])
+                          .title
+                      }
+                      onChange={(selectList) => {
+                        onChange(
+                          (selectList as NonNullable<typeof categoryList>).map(
+                            (option) => option.title,
+                          ),
+                        );
+                      }}
+                      isMulti
+                    />
+                  )}
                 />
               </Label>
               <Label label="價格" required>
-                <InputOnlyNumber name="price" error={errors.price?.message} />
+                <InputOnlyNumber name="price" />
               </Label>
               <Label label="庫存" required>
-                <InputOnlyNumber name="stock" error={errors.stock?.message} />
+                <InputOnlyNumber name="stock" />
               </Label>
               <Label label="標籤">
                 <Controller
                   control={control}
                   name="tags"
                   render={({ field: { onChange } }) => (
-                    <ReactAsyncSelect isMulti />
+                    <ReactSelect
+                      options={tagList}
+                      isLoading={isGetTagsLoading}
+                      placeholder="選擇標籤..."
+                      getOptionLabel={(option) =>
+                        (option as NonNullable<typeof tagList>[number]).title
+                      }
+                      getOptionValue={(option) =>
+                        (option as NonNullable<typeof tagList>[number]).title
+                      }
+                      onChange={(selectList) => {
+                        onChange(
+                          (selectList as NonNullable<typeof tagList>).map(
+                            (option) => option.title,
+                          ),
+                        );
+                      }}
+                      isMulti
+                    />
                   )}
                 />
               </Label>

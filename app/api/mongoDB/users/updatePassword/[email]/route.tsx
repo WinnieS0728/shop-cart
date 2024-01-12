@@ -14,7 +14,7 @@ interface params {
 
 export async function PATCH(req: NextRequest, { params: { email } }: params) {
   const requestBody = await req.json();
-  const conn = connectToMongo(dbList.users);
+  const conn = connectToMongo('users');
   const {
     models: { [`${collectionList.users}`]: DB_user },
   } = conn;

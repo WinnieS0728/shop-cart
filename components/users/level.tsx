@@ -7,7 +7,7 @@ type level = {
   threshold: number;
 };
 
-export default function Level() {
+export default function LevelSection() {
   const { watch } = useFormContext();
   const consumption = watch("consumption");
   const { data: level, isSuccess } = useQuery<{
@@ -38,29 +38,34 @@ export default function Level() {
   });
   return (
     <>
-      <div className="flex items-center gap-8">
-        <p className="flex items-center gap-2 whitespace-nowrap">
-          目前累計消費金額 : <span className="text-2xl">{consumption}</span>
-        </p>
-        {isSuccess && (
-          <p className="flex items-center justify-center gap-2 whitespace-nowrap">
-            等級 : <span className="text-2xl">{level.prev.title}</span>
-          </p>
-        )}
-      </div>
       {isSuccess && (
-        <p className="flex items-center gap-2 whitespace-nowrap">
-          <>
-            再消費
-            {isSuccess && (
-              <span className="text-2xl">
-                {level.next.threshold - consumption ?? 0}
-              </span>
-            )}
-            元可升級為{" "}
-            {isSuccess && <span className="text-2xl">{level.next.title}</span>}
-          </>
-        </p>
+        <>
+          <div className="flex items-center gap-8">
+            <>
+              <p className="flex items-center gap-2 whitespace-nowrap">
+                目前累計消費金額 :{" "}
+                <span className="text-2xl">{consumption ?? 0}</span>
+              </p>
+              <p className="flex items-center justify-center gap-2 whitespace-nowrap">
+                等級 : <span className="text-2xl">{level.prev.title}</span>
+              </p>
+            </>
+          </div>
+          <p className="flex items-center gap-2 whitespace-nowrap">
+            <>
+              再消費
+              {isSuccess && (
+                <span className="text-2xl">
+                  {level.next.threshold - consumption ?? 0}
+                </span>
+              )}
+              元可升級為{" "}
+              {isSuccess && (
+                <span className="text-2xl">{level.next.title}</span>
+              )}
+            </>
+          </p>
+        </>
       )}
     </>
   );
