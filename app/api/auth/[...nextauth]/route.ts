@@ -5,7 +5,6 @@ import bcrypt from 'bcryptjs'
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { createConnection } from "mongoose"
-import DB_user_schema from "@/libs/mongoDB/schemas/user"
 
 export const authOptions = {
     // Configure one or more authentication providers
@@ -23,11 +22,11 @@ export const authOptions = {
             async authorize(credentials) {
                 if (credentials) {
                     const { email, password } = credentials
-                    const conn = createConnection(`${process.env.MONGO_URL}`, {
-                        dbName: dbList.users
-                    })
+                    const conn = connectToMongo('users')
+                    const { models: {
+                        [`${collectionList.users}`]: DB_user
+                    } } = conn
                     try {
-                        conn.model(collectionList.users, DB_user_schema)
                         const user = await DB_user.findOne({
                             email: { $eq: email }
                         })
@@ -44,6 +43,8 @@ export const authOptions = {
                         }
                     } catch (error) {
                         throw error
+                    } finally {
+                        await conn.close()
                     }
                 }
                 return null

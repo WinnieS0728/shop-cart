@@ -44,7 +44,11 @@ export default function SignInForm() {
     toast.promise(request, {
       pending: '登入中...',
       success: '登入成功 !',
-      error: '登入失敗 !'
+      error: {
+        render({data}) {
+            return `${data}`
+        },
+      }
     })
   }
   return (
