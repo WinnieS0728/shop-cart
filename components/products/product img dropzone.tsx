@@ -90,7 +90,7 @@ export default function ProductImgDropzone() {
         {objectUrl || value?.thumbnail ? (
           <Image
             src={objectUrl || value.thumbnail}
-            className="aspect-image w-full rounded-full object-cover"
+            className="aspect-image w-full object-contain"
             alt="image"
             width={300}
             height={300}

@@ -46,7 +46,7 @@ function useUpdateMember() {
 function useDeleteMember() {
     return useMutation({
         mutationKey: ['admin', dbList.basicSetting, collectionList.members, 'DELETE'],
-        mutationFn: (title: string) => fetch(`/api/mongoDB/basicSetting/${collectionList.members}?title=${title}`, {
+        mutationFn: (id: string) => fetch(`/api/mongoDB/basicSetting/${collectionList.members}?id=${id}`, {
             method: "DELETE",
         })
     })
@@ -78,10 +78,22 @@ function useCreateCategory() {
         })
     })
 }
+function useUpdateCategory() {
+    return useMutation({
+        mutationKey: ['admin', dbList.basicSetting, collectionList.categories, "PATCH"],
+        mutationFn: (data: z.infer<typeof categoriesSetting_Schema>["categories"][number],) => fetch(`/api/mongoDB/basicSetting/${collectionList.categories}`, {
+            method: "PATCH",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+    })
+}
 function useDeleteCategory() {
     return useMutation({
         mutationKey: ['admin', dbList.basicSetting, collectionList.categories, "DELETE"],
-        mutationFn: (title: string) => fetch(`/api/mongoDB/basicSetting/${collectionList.categories}?title=${title}`, {
+        mutationFn: (id: string) => fetch(`/api/mongoDB/basicSetting/${collectionList.categories}?id=${id}`, {
             method: "DELETE",
         })
     })
@@ -114,10 +126,22 @@ function useCreateTag() {
         })
     })
 }
+function useUpdateTag() {
+    return useMutation({
+        mutationKey: ['admin', dbList.basicSetting, collectionList.tags, "PATCH"],
+        mutationFn: (data: z.infer<typeof tagSetting_Schema>["tags"][number],) => fetch(`/api/mongoDB/basicSetting/${collectionList.tags}`, {
+            method: "PATCH",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+    })
+}
 function useDeleteTag() {
     return useMutation({
         mutationKey: ['admin', dbList.basicSetting, collectionList.tags, 'DELETE'],
-        mutationFn: (title: string) => fetch(`/api/mongoDB/basicSetting/${collectionList.tags}?title=${title}`, {
+        mutationFn: (id: string) => fetch(`/api/mongoDB/basicSetting/${collectionList.tags}?id=${id}`, {
             method: "DELETE",
         })
     })
@@ -134,11 +158,13 @@ export function useBasicSettingMethods() {
         category: {
             GET: useGetCategories(),
             POST: useCreateCategory(),
+            PATCH: useUpdateCategory(),
             DELETE: useDeleteCategory()
         },
         tag: {
             GET: useGetTags(),
             POST: useCreateTag(),
+            PATCH: useUpdateTag(),
             DELETE: useDeleteTag()
         }
     }

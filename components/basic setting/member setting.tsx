@@ -22,13 +22,14 @@ export default function MemberSetting() {
 
   const methods = useForm<z.infer<typeof memberSetting_Schema>>({
     resolver: zodResolver(memberSetting_Schema),
-    reValidateMode: "onChange",
     defaultValues: memberSettingData
       ? {
           member: memberSettingData,
         }
       : async () => {
-          const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.members}`);
+          const res = await fetch(
+            `/api/mongoDB/basicSetting/${collectionList.members}`,
+          );
           return {
             member: await res.json(),
           };
@@ -48,40 +49,32 @@ export default function MemberSetting() {
 
   async function onSubmit(data: z.infer<typeof memberSetting_Schema>) {
     if (!memberSettingData) {
-      return 
+      return;
     }
     const shouldDelete = memberSettingData.filter(
       (dataInDB) =>
-        !data.member.some((dataInForm) => dataInForm.title === dataInDB.title),
+        !data.member.some((dataInForm) => dataInForm._id === dataInDB._id),
     );
     const shouldUpdate = data.member.filter((dataInform) =>
-      memberSettingData.some(
-        (dataInDB) => dataInDB.title === dataInform.title,
-      ),
+      memberSettingData.some((dataInDB) => dataInDB._id === dataInform._id),
     );
     const shouldCreate = data.member.filter(
       (dataInform) =>
-        !memberSettingData.some(
-          (dataInDB) => dataInDB.title === dataInform.title,
-        ),
+        !memberSettingData.some((dataInDB) => dataInDB._id === dataInform._id),
     );
 
-    const isDELETEsuccess = (
-      await Promise.all(
-        shouldDelete.map(async (data) => deleteMember(data.title)),
-      )
-    ).every((res) => res.ok);
+    const request = new Promise(async (res, rej) => {
+      const isDELETEsuccess = (
+        await Promise.all(shouldDelete.map((data) => deleteMember(data._id)))
+      ).every((res) => res.ok);
 
-    const isPATCHsuccess = (
-      await Promise.all(shouldUpdate.map(async (data) => updateMember(data)))
-    ).every((res) => res.ok);
-    console.log(isPATCHsuccess);
+      const isPATCHsuccess = (
+        await Promise.all(shouldUpdate.map((data) => updateMember(data)))
+      ).every((res) => res.ok);
 
-    const isPOSTsuccess = (
-      await Promise.all(shouldCreate.map(async (data) => createMember(data)))
-    ).every((res) => res.ok);
-
-    const request = new Promise((res, rej) => {
+      const isPOSTsuccess = (
+        await Promise.all(shouldCreate.map((data) => createMember(data)))
+      ).every((res) => res.ok);
       if (!isPOSTsuccess || !isPATCHsuccess || !isDELETEsuccess) {
         rej(false);
       } else {

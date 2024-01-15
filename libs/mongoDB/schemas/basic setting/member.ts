@@ -1,9 +1,10 @@
-import { Schema, model, models } from "mongoose";
+import { Schema, Types } from "mongoose";
 import { z } from "zod";
 import { findRepeat } from "@/libs/utils/find repeat";
 
 export const memberSetting_Schema = z.object({
     member: z.array(z.object({
+        _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
         title: z.string().min(1, '名稱為必填'),
         threshold: z.number().min(0, '最低門檻為 0')
     }))

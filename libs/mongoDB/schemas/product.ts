@@ -1,10 +1,11 @@
-import { Schema, model } from "mongoose";
+import { Schema, Types } from "mongoose";
 import { z } from "zod";
+import { collectionList, connectToMongo } from "../connect mongo";
 
 export const product_schema = z.object({
     title: z.string().min(1, '請填入商品名字'),
     content: z.string(),
-    category: z.array(z.string()),
+    categories: z.array(z.union([z.string(), z.instanceof(Types.ObjectId)])),
     price: z.number().min(0, '請填入商品價格').max(9999, '別賣這麼貴'),
     stock: z.number().min(0, '請填入庫存數量'),
     sold: z.number(),
@@ -12,7 +13,7 @@ export const product_schema = z.object({
         normal: z.string(),
         thumbnail: z.string()
     }),
-    tags: z.array(z.string())
+    tags: z.array(z.union([z.string(), z.instanceof(Types.ObjectId)]))
 })
 
 const DB_product_schema = new Schema<z.infer<typeof product_schema>>({
@@ -24,9 +25,13 @@ const DB_product_schema = new Schema<z.infer<typeof product_schema>>({
         type: String,
         default: ""
     },
-    category: {
-        type: [String],
-        default: []
+    categories: {
+        type: [Schema.Types.ObjectId],
+        ref: () => {
+            const { models: { [`${collectionList.categories}`]: DB_categories } } = connectToMongo('basicSetting')
+            return DB_categories
+        },
+        default: [],
     },
     price: {
         type: Number,
@@ -51,8 +56,12 @@ const DB_product_schema = new Schema<z.infer<typeof product_schema>>({
         }
     },
     tags: {
-        type: [String],
-        default: []
+        type: [Schema.Types.ObjectId],
+        ref: () => {
+            const { models: { [`${collectionList.tags}`]: DB_tags } } = connectToMongo('basicSetting')
+            return DB_tags
+        },
+        default: [],
     }
 }, {
     timestamps: true,

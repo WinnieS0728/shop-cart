@@ -1,4 +1,4 @@
-import { connectToMongo, collectionList, dbList } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo, collectionList } from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
                 $lte: consumption
             }
         }).sort({ threshold: -1 }).limit(1).select(['title', 'threshold']).lean()
+
         const nextLevel = await DB_basicSetting_member.findOne({
             threshold: {
                 $gt: consumption

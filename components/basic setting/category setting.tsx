@@ -14,20 +14,22 @@ import { collectionList } from "@/libs/mongoDB/connect mongo";
 
 export default function CategorySetting() {
   const {
-    GET: {data: categorySettingData, isPending},
+    GET: { data: categorySettingData, isPending },
     POST: { mutateAsync: createCategory },
+    PATCH: { mutateAsync: updateCategory },
     DELETE: { mutateAsync: deleteCategory },
   } = useBasicSettingMethods().category;
 
   const methods = useForm<z.infer<typeof categoriesSetting_Schema>>({
     resolver: zodResolver(categoriesSetting_Schema),
-    shouldUnregister: true,
     defaultValues: categorySettingData
       ? {
           categories: categorySettingData,
         }
       : async () => {
-          const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.categories}`);
+          const res = await fetch(
+            `/api/mongoDB/basicSetting/${collectionList.categories}`,
+          );
           return {
             categories: await res.json(),
           };
@@ -48,29 +50,41 @@ export default function CategorySetting() {
   async function onSubmit(data: z.infer<typeof categoriesSetting_Schema>) {
     const shouldDelete = categorySettingData!.filter(
       (dataInDB) =>
-        !data.categories.some(
-          (dataInForm) => dataInForm.title === dataInDB.title,
-        ),
+        !data.categories.some((dataInForm) => dataInForm._id === dataInDB._id),
     );
     const shouldCreate = data.categories.filter(
       (dataInform) =>
-        !categorySettingData!.some(
-          (dataInDB) => dataInDB.title === dataInform.title,
+        !categorySettingData?.some(
+          (dataInDB) => dataInDB._id === dataInform._id,
+        ),
+    );
+    const shouldUpdate = data.categories.filter(
+      (dataInForm) =>
+        categorySettingData?.some(
+          (dataInDB) => dataInDB._id === dataInForm._id,
         ),
     );
 
-    const isDeleteSuccess = (
-      await Promise.all(
-        shouldDelete.map(async (data) => deleteCategory(data.title)),
-      )
-    ).every((res) => res.ok);
+    const request = new Promise(async (res, rej) => {
+      const isDeleteSuccess = (
+        await Promise.all(
+          shouldDelete.map(async (data) => await deleteCategory(data._id)),
+        )
+      ).every((res) => res.ok);
 
-    const isCreateSuccess = (
-      await Promise.all(shouldCreate.map(async (data) => createCategory(data)))
-    ).every((res) => res.ok);
+      const isCreateSuccess = (
+        await Promise.all(
+          shouldCreate.map(async (data) => await createCategory(data)),
+        )
+      ).every((res) => res.ok);
 
-    const request = new Promise((res, rej) => {
-      if (!isDeleteSuccess || !isCreateSuccess) {
+      const isUpdateSuccess = (
+        await Promise.all(
+          shouldUpdate.map(async (data) => await updateCategory(data)),
+        )
+      ).every((res) => res.ok);
+
+      if (!isDeleteSuccess || !isCreateSuccess || !isUpdateSuccess) {
         rej(false);
       } else {
         res(true);

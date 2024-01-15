@@ -1,9 +1,10 @@
 import { findRepeat } from "@/libs/utils/find repeat";
-import { Schema, model, models } from "mongoose";
+import { Schema, Types } from "mongoose";
 import { z } from "zod";
 
 export const tagSetting_Schema = z.object({
     tags: z.array(z.object({
+        _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
         title: z.string()
     })).superRefine((value, ctx) => {
         const isTitleRepeat = value.length !== new Set(value.map(data => data.title)).size

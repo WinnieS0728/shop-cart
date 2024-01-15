@@ -21,9 +21,17 @@ export default function ProductList() {
     }
   }
 
+  function getStockScale (stock: number){
+    if (stock >= 10) {
+      return '10+'
+    } else {
+      return `${stock}`
+    }
+  }
+
   return (
     <>
-      <section className="grid grid-cols-2 p-4">
+      <section className="grid grid-cols-2 p-4 gap-4">
         {productList?.map((product, index) => (
           <article
             key={index}
@@ -42,9 +50,9 @@ export default function ProductList() {
                 {product.tags.map((tag) => (
                   <span
                     className="rounded-md bg-green-500 px-2 text-white"
-                    key={tag}
+                    key={tag._id}
                   >
-                    {tag}
+                    {tag.title}
                   </span>
                 ))}
               </div>
@@ -54,12 +62,12 @@ export default function ProductList() {
                 <p className="text-xl mb-2">{product.title}</p>
               </div>
               <div className="flex items-center justify-start gap-2">
-                {product.category.map((category) => (
+                {product.categories.map((category) => (
                   <span
                     className="rounded-md bg-yellow-500 px-2 text-white"
-                    key={category}
+                    key={category._id}
                   >
-                    {category}
+                    {category.title}
                   </span>
                 ))}
               </div>
@@ -68,7 +76,7 @@ export default function ProductList() {
                   ${product.price.toLocaleString()}
                 </p>
                 <div>
-                  {product.stock < 10 && <p>剩餘 {product.stock}</p>}
+                  {<p>剩餘 {getStockScale(product.stock)}</p>}
                   <small>已售出 {getSoldScale(product.sold)}</small>
                 </div>
               </div>

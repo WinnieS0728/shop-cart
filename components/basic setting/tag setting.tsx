@@ -16,6 +16,7 @@ export default function TagsSetting() {
   const {
     GET: { data: tagSettingData, isPending },
     POST: { mutateAsync: createTag },
+    PATCH: { mutateAsync: updateTag },
     DELETE: { mutateAsync: deleteTag },
   } = useBasicSettingMethods().tag;
 
@@ -49,24 +50,27 @@ export default function TagsSetting() {
   async function onSubmit(data: z.infer<typeof tagSetting_Schema>) {
     const shouldDelete = tagSettingData!.filter(
       (dataInDB) =>
-        !data.tags.some((dataInForm) => dataInForm.title === dataInDB.title),
+        !data.tags.some((dataInForm) => dataInForm._id === dataInDB._id),
     );
     const shouldCreate = data.tags.filter(
       (dataInform) =>
-        !tagSettingData!.some(
-          (dataInDB) => dataInDB.title === dataInform.title,
-        ),
+        !tagSettingData?.some((dataInDB) => dataInDB._id === dataInform._id),
+    );
+    const shouldUpdate = data.tags.filter(
+      (dataInform) =>
+        tagSettingData?.some((dataInDB) => dataInDB._id === dataInform._id),
     );
 
-    const isDeleteSuccess = (
-      await Promise.all(shouldDelete.map(async (data) => deleteTag(data.title)))
-    ).every((res) => res.ok);
-
-    const isCreateSuccess = (
-      await Promise.all(shouldCreate.map(async (data) => createTag(data)))
-    ).every((res) => res.ok);
-
-    const request = new Promise((res, rej) => {
+    const request = new Promise(async(res, rej) => {
+      const isDeleteSuccess = (
+        await Promise.all(shouldDelete.map((data) => deleteTag(data._id)))
+      ).every((res) => res.ok);
+      const isCreateSuccess = (
+        await Promise.all(shouldCreate.map((data) => createTag(data)))
+      ).every((res) => res.ok);
+      const isUpdateSuccess = (
+        await Promise.all(shouldUpdate.map((data) => updateTag(data)))
+      ).every((res) => res.ok);
       if (!isDeleteSuccess || !isCreateSuccess) {
         rej(false);
       } else {

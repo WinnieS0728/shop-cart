@@ -13,6 +13,7 @@ import FormContainer from "../UI/form";
 import ProductImgDropzone from "./product img dropzone";
 import { useProductMethods } from "@/app/api/mongoDB/products/methods";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
+import { Types } from "mongoose";
 export default function CreateProductForm() {
   const { edgestore } = useEdgeStore();
   const {
@@ -31,7 +32,7 @@ export default function CreateProductForm() {
     defaultValues: {
       title: "",
       content: "",
-      category: [],
+      categories: [],
       price: 0,
       stock: 0,
       sold: 0,
@@ -51,7 +52,7 @@ export default function CreateProductForm() {
   } = methods;
 
   function getIsImageUploadDone() {
-    return !!watch("imageUrl");
+    return !!watch("imageUrl.normal");
   }
 
   async function onSubmit(data: z.infer<typeof product_schema>) {
@@ -104,7 +105,7 @@ export default function CreateProductForm() {
               <Label label="產品分類">
                 <Controller
                   control={control}
-                  name="category"
+                  name="categories"
                   render={({ field: { onChange } }) => (
                     <ReactSelect
                       name="categoryList"
@@ -117,12 +118,12 @@ export default function CreateProductForm() {
                       }
                       getOptionValue={(option) =>
                         (option as NonNullable<typeof categoryList>[number])
-                          .title
+                          ._id
                       }
                       onChange={(selectList) => {
                         onChange(
                           (selectList as NonNullable<typeof categoryList>).map(
-                            (option) => option.title,
+                            (option) => option._id,
                           ),
                         );
                       }}
@@ -150,12 +151,12 @@ export default function CreateProductForm() {
                         (option as NonNullable<typeof tagList>[number]).title
                       }
                       getOptionValue={(option) =>
-                        (option as NonNullable<typeof tagList>[number]).title
+                        (option as NonNullable<typeof tagList>[number])._id
                       }
                       onChange={(selectList) => {
                         onChange(
                           (selectList as NonNullable<typeof tagList>).map(
-                            (option) => option.title,
+                            (option) => option._id,
                           ),
                         );
                       }}
@@ -166,7 +167,7 @@ export default function CreateProductForm() {
               </Label>
             </div>
           </div>
-          <InputSubmit value={"儲存"} />
+          <InputSubmit value={"儲存"} disabled={isSubmitting} />
         </FormContainer>
       </FormProvider>
     </>

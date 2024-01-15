@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
   } = conn;
 
   try {
-    const res = await DB_product.find().lean();
+    const res = await DB_product.find().populate(['categories', 'tags']).lean();
+    console.log(res);
     return NextResponse.json(res, { status: 200 });
   } catch (error) {
     console.log(error);
