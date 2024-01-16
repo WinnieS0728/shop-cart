@@ -1,13 +1,11 @@
-import { connectToMongo, dbList, collectionList } from "@/libs/mongoDB/connect mongo"
-import NextAuth, { NextAuthOptions } from "next-auth"
+import { connectToMongo, collectionList } from "@/libs/mongoDB/connect mongo"
+import NextAuth, { DefaultSession, NextAuthOptions, Session, User } from "next-auth"
 import bcrypt from 'bcryptjs'
 
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { createConnection } from "mongoose"
 
 export const authOptions = {
-    // Configure one or more authentication providers
     secret: process.env.NEXTAUTH_SECRET,
     providers: [
         CredentialsProvider({
@@ -39,7 +37,7 @@ export const authOptions = {
                             name: user.username,
                             email: user.email,
                             image: user.avatar,
-                            isMember: true
+                            role: user.role
                         }
                     } catch (error) {
                         throw error
@@ -77,13 +75,39 @@ export const authOptions = {
                 return false
             }
         },
+        async jwt({ token, account, user }) {
+            if (account) {
+                token.id = account.id
+                token.accessToken = account.access_token
+                token.role = user.role
+            }
+            return token
+        },
+        async session({ session, token }) {
+            return {
+                ...session,
+                user: {
+                    ...session.user,
+                    role: token.role
+                }
+            }
+        },
     },
-    // pages: {
-    //     signIn: '/admin'
-    // }
+    pages: {
+        signIn: '/admin/user'
+    }
 
 } satisfies NextAuthOptions
 
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
+
+declare module 'next-auth' {
+    interface Session {
+        role: "admin" | 'user'
+    }
+    interface User {
+        role: "admin" | "user"
+    }
+}

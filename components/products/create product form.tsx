@@ -2,18 +2,16 @@
 import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ImageDropzone from "./product img dropzone";
 import { z } from "zod";
 import { product_schema } from "@/libs/mongoDB/schemas/product";
 import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
 import { useEdgeStore } from "@/libs/edgestore";
-import { ReactAsyncSelect, ReactSelect } from "@components/UI/select";
+import { ReactSelect } from "@components/UI/select";
 import { toast } from "react-toastify";
 import FormContainer from "../UI/form";
 import ProductImgDropzone from "./product img dropzone";
 import { useProductMethods } from "@/app/api/mongoDB/products/methods";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
-import { Types } from "mongoose";
 export default function CreateProductForm() {
   const { edgestore } = useEdgeStore();
   const {
@@ -117,8 +115,7 @@ export default function CreateProductForm() {
                           .title
                       }
                       getOptionValue={(option) =>
-                        (option as NonNullable<typeof categoryList>[number])
-                          ._id
+                        (option as NonNullable<typeof categoryList>[number])._id as string
                       }
                       onChange={(selectList) => {
                         onChange(
@@ -151,7 +148,7 @@ export default function CreateProductForm() {
                         (option as NonNullable<typeof tagList>[number]).title
                       }
                       getOptionValue={(option) =>
-                        (option as NonNullable<typeof tagList>[number])._id
+                        (option as NonNullable<typeof tagList>[number])._id as string
                       }
                       onChange={(selectList) => {
                         onChange(

@@ -6,11 +6,30 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { categoriesSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 import { collectionList } from "@/libs/mongoDB/connect mongo";
+import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
+import { findRepeat } from "@/libs/utils/find repeat";
+import { Types } from "mongoose";
+
+const category_formSchema = z.object({
+  categories: z.array(category_schema).superRefine((value, ctx) => {
+    const isTitleRepeat =
+      value.length !== new Set(value.map((data) => data.title)).size;
+
+    if (isTitleRepeat) {
+      findRepeat(value.map((data) => data.title)).map((index) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "名稱重複",
+          path: [index!, "title"],
+        });
+      });
+    }
+  }),
+});
 
 export default function CategorySetting() {
   const {
@@ -20,8 +39,8 @@ export default function CategorySetting() {
     DELETE: { mutateAsync: deleteCategory },
   } = useBasicSettingMethods().category;
 
-  const methods = useForm<z.infer<typeof categoriesSetting_Schema>>({
-    resolver: zodResolver(categoriesSetting_Schema),
+  const methods = useForm<z.infer<typeof category_formSchema>>({
+    resolver: zodResolver(category_formSchema),
     defaultValues: categorySettingData
       ? {
           categories: categorySettingData,
@@ -47,7 +66,8 @@ export default function CategorySetting() {
     name: "categories",
   });
 
-  async function onSubmit(data: z.infer<typeof categoriesSetting_Schema>) {
+  async function onSubmit(data: z.infer<typeof category_formSchema>) {
+    // console.log(data);
     const shouldDelete = categorySettingData!.filter(
       (dataInDB) =>
         !data.categories.some((dataInForm) => dataInForm._id === dataInDB._id),
@@ -136,6 +156,7 @@ export default function CategorySetting() {
                 className="add-new-btn"
                 onClick={() => {
                   append({
+                    _id: new Types.ObjectId(),
                     title: "",
                   });
                 }}

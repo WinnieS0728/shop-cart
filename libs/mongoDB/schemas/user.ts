@@ -15,10 +15,10 @@ export const user_schema = z.object({
         cardNumber: z.string().refine((value) => {
             if (value.replace(/ /g, "").length !== 16) {
                 return false
-            }else {
+            } else {
                 return true
             }
-            
+
         }, {
             message: '請填寫完整卡號',
         }),
@@ -32,14 +32,15 @@ export const user_schema = z.object({
             message: "安全碼錯誤"
         })
     }),
-    consumption: z.number().min(0, '最低消費金額是 0')
+    consumption: z.number().min(0, '最低消費金額是 0'),
+    role: z.enum(['admin', 'user']).default('user')
 })
 
 export const signUp_schema = user_schema.pick({
     username: true,
     email: true,
     password: true,
-    avatar: true
+    avatar: true,
 })
 
 const DB_user_schema = new Schema<z.infer<typeof user_schema>>({
@@ -100,6 +101,10 @@ const DB_user_schema = new Schema<z.infer<typeof user_schema>>({
         required: true,
         default: 0,
         min: [0, '最低累計消費金額是 0']
+    },
+    role: {
+        type: String,
+        default: 'user'
     }
 }, {
     timestamps: true,

@@ -60,6 +60,7 @@ export async function POST(req: NextRequest, { params: { type } }: params) {
                 NextResponse.json('不知道要建立什麼', { status: 400 })
         }
     } catch (error) {
+        console.log(error);
         return NextResponse.json(error, { status: 400 })
     } finally {
         await conn.close()

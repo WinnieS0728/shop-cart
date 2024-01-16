@@ -6,11 +6,42 @@ import { z } from "zod";
 import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { memberSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/member";
 import { Loading } from "../UI/loading";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { collectionList } from "@/libs/mongoDB/connect mongo";
+import { member_schema } from "@/libs/mongoDB/schemas/basic setting/member";
+import { findRepeat } from "@/libs/utils/find repeat";
+import { Types } from "mongoose";
+
+const member_formSchema = z.object({
+  member: z.array(member_schema).superRefine((value, ctx) => {
+    const isTitleRepeat =
+      value.length !== new Set(value.map((data) => data.title)).size;
+
+    if (isTitleRepeat) {
+      findRepeat(value.map((data) => data.title)).map((index) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "名稱重複",
+          path: [index!, "title"],
+        });
+      });
+    }
+
+    const isThresholdRepeat =
+      value.length !== new Set(value.map((data) => data.threshold)).size;
+    if (isThresholdRepeat) {
+      findRepeat(value.map((data) => data.threshold)).map((index) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "門檻重複",
+          path: [index!, "threshold"],
+        });
+      });
+    }
+  }),
+});
 
 export default function MemberSetting() {
   const {
@@ -20,8 +51,8 @@ export default function MemberSetting() {
     DELETE: { mutateAsync: deleteMember },
   } = useBasicSettingMethods().member;
 
-  const methods = useForm<z.infer<typeof memberSetting_Schema>>({
-    resolver: zodResolver(memberSetting_Schema),
+  const methods = useForm<z.infer<typeof member_formSchema>>({
+    resolver: zodResolver(member_formSchema),
     defaultValues: memberSettingData
       ? {
           member: memberSettingData,
@@ -47,7 +78,7 @@ export default function MemberSetting() {
     name: "member",
   });
 
-  async function onSubmit(data: z.infer<typeof memberSetting_Schema>) {
+  async function onSubmit(data: z.infer<typeof member_formSchema>) {
     if (!memberSettingData) {
       return;
     }
@@ -142,6 +173,7 @@ export default function MemberSetting() {
                 className="add-new-btn"
                 onClick={() => {
                   append({
+                    _id: new Types.ObjectId(),
                     title: "",
                     threshold: 0,
                   });

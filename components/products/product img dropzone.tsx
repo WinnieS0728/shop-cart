@@ -76,7 +76,7 @@ export default function ProductImgDropzone() {
     <div className="relative">
       <div
         className={cn(
-          "flex aspect-image w-60 cursor-pointer items-center justify-center gap-2 rounded-md border p-8",
+          "flex aspect-square w-60 cursor-pointer items-center justify-center gap-2 rounded-md border p-8",
           {
             "border-red-500": isDragReject,
             "border-green-500": isDragAccept,
@@ -90,7 +90,7 @@ export default function ProductImgDropzone() {
         {objectUrl || value?.thumbnail ? (
           <Image
             src={objectUrl || value.thumbnail}
-            className="aspect-image w-full object-contain"
+            className="aspect-square w-full object-contain"
             alt="image"
             width={300}
             height={300}

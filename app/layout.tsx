@@ -12,6 +12,7 @@ import "./globals.scss";
 import { SessionProvider } from "next-auth/react";
 import MySessionProvider from "@/providers/session";
 import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
 const handWritingFont = localFont({
   src: "../public/fonts/ChenYuluoyan-Thin.woff2",
@@ -30,7 +31,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en">
       <SmoothScrollProvider>

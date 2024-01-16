@@ -12,14 +12,14 @@ export default function Header() {
           avatar
         </Link>
         <div className="flex items-center justify-center gap-12">
-          <Link href={"/"}>menu</Link>
+          <Link href={"/menu"}>menu</Link>
           <Link href={"/"}>
             <div className="h-16 w-24 bg-yellow-500">logo</div>
           </Link>
-          <Link href={"/"}>contact</Link>
+          <Link href={"/contact"}>contact</Link>
         </div>
         <Link
-          href={"/"}
+          href={"/cart"}
           className="aspect-square w-12 rounded-full bg-yellow-500"
         >
           shop cart

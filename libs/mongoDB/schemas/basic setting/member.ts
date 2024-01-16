@@ -1,42 +1,13 @@
 import { Schema, Types } from "mongoose";
 import { z } from "zod";
-import { findRepeat } from "@/libs/utils/find repeat";
 
-export const memberSetting_Schema = z.object({
-    member: z.array(z.object({
-        _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
-        title: z.string().min(1, '名稱為必填'),
-        threshold: z.number().min(0, '最低門檻為 0')
-    }))
-        .superRefine((value, ctx) => {
-            const isTitleRepeat = value.length !== new Set(value.map(data => data.title)).size
-
-            if (isTitleRepeat) {
-                findRepeat(value.map(data => data.title)).map((index) => {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: '名稱重複',
-                        path: [index!, 'title']
-                    })
-                })
-            }
-
-            const isThresholdRepeat = value.length !== new Set(value.map(data => data.threshold)).size
-            if (isThresholdRepeat) {
-                findRepeat(value.map(data => data.threshold)).map((index) => {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: '門檻重複',
-                        path: [index!, 'threshold']
-                    })
-                })
-            }
-
-            
-        })
+export const member_schema = z.object({
+    _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
+    title: z.string().min(1, '名稱為必填'),
+    threshold: z.number().min(0, '最低門檻為 0')
 })
 
-const DB_basicSetting_member_schema = new Schema<z.infer<typeof memberSetting_Schema>['member'][number]>(
+const DB_basicSetting_member_schema = new Schema<z.infer<typeof member_schema>>(
     {
         title: {
             type: String,

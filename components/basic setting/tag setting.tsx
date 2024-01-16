@@ -6,11 +6,30 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { tagSetting_Schema } from "@/libs/mongoDB/schemas/basic setting/tag";
+import { tag_schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 import { collectionList } from "@/libs/mongoDB/connect mongo";
+import { findRepeat } from "@/libs/utils/find repeat";
+import { Types } from "mongoose";
+
+const tag_formSchema = z.object({
+  tags: z.array(tag_schema).superRefine((value, ctx) => {
+    const isTitleRepeat =
+      value.length !== new Set(value.map((data) => data.title)).size;
+
+    if (isTitleRepeat) {
+      findRepeat(value.map((data) => data.title)).map((index) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "名稱重複",
+          path: [index!, "title"],
+        });
+      });
+    }
+  }),
+});
 
 export default function TagsSetting() {
   const {
@@ -20,8 +39,8 @@ export default function TagsSetting() {
     DELETE: { mutateAsync: deleteTag },
   } = useBasicSettingMethods().tag;
 
-  const methods = useForm<z.infer<typeof tagSetting_Schema>>({
-    resolver: zodResolver(tagSetting_Schema),
+  const methods = useForm<z.infer<typeof tag_formSchema>>({
+    resolver: zodResolver(tag_formSchema),
     defaultValues: tagSettingData
       ? {
           tags: tagSettingData,
@@ -47,7 +66,7 @@ export default function TagsSetting() {
     name: "tags",
   });
 
-  async function onSubmit(data: z.infer<typeof tagSetting_Schema>) {
+  async function onSubmit(data: z.infer<typeof tag_formSchema>) {
     const shouldDelete = tagSettingData!.filter(
       (dataInDB) =>
         !data.tags.some((dataInForm) => dataInForm._id === dataInDB._id),
@@ -61,7 +80,7 @@ export default function TagsSetting() {
         tagSettingData?.some((dataInDB) => dataInDB._id === dataInform._id),
     );
 
-    const request = new Promise(async(res, rej) => {
+    const request = new Promise(async (res, rej) => {
       const isDeleteSuccess = (
         await Promise.all(shouldDelete.map((data) => deleteTag(data._id)))
       ).every((res) => res.ok);
@@ -126,6 +145,7 @@ export default function TagsSetting() {
                 className="add-new-btn"
                 onClick={() => {
                   append({
+                    _id: new Types.ObjectId(),
                     title: "",
                   });
                 }}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { collectionList, connectToMongo } from "../connect mongo";
 
 export const product_schema = z.object({
+    _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
     title: z.string().min(1, '請填入商品名字'),
     content: z.string(),
     categories: z.array(z.union([z.string(), z.instanceof(Types.ObjectId)])),

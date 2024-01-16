@@ -1,10 +1,19 @@
 import { collectionList, dbList } from "@/libs/mongoDB/connect mongo";
+import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
+import { tag_schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { product_schema } from "@/libs/mongoDB/schemas/product";
+import { queryClient } from "@/providers/react query";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
+const populated_schema = z.object({
+    categories: z.array(category_schema),
+    tags: z.array(tag_schema)
+})
+export const product_listSchema = product_schema.merge(populated_schema)
+
 function useGETproducts() {
-    return useQuery<z.infer<typeof product_schema>[]>({
+    return useQuery<z.infer<typeof product_listSchema>[]>({
         queryKey: [dbList.products, collectionList.products, "GET"],
         queryFn: async () => {
             const res = await fetch('/api/mongoDB/products')
@@ -25,7 +34,12 @@ function usePOSTproduct() {
                 'Content-type': 'application/json'
             },
             body: JSON.stringify(data)
-        })
+        }),
+        onSuccess: ()=>{
+            queryClient.invalidateQueries({
+                queryKey: [dbList.products, collectionList.products, "GET"]
+            })
+        }
     })
 }
 
