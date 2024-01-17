@@ -5,12 +5,13 @@ import { tag_schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { queryClient } from "@/providers/react query";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { product_listSchema } from "../../products/methods";
 
 function useGetMember() {
     return useQuery<
         z.infer<typeof member_schema>[]
     >({
-        queryKey: ['admin', dbList.basicSetting, collectionList.members, 'GET'],
+        queryKey: [dbList.basicSetting, collectionList.members, 'GET'],
         queryFn: async () => {
             const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.members}`)
             if (!res.ok) {
@@ -22,7 +23,7 @@ function useGetMember() {
 }
 function useCreateMember() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.members, 'POST'],
+        mutationKey: [dbList.basicSetting, collectionList.members, 'POST'],
         mutationFn: (data: z.infer<typeof member_schema>) => fetch(`/api/mongoDB/basicSetting/${collectionList.members}`, {
             method: "POST",
             headers: {
@@ -30,14 +31,14 @@ function useCreateMember() {
             },
             body: JSON.stringify(data),
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.members, 'GET'], (prev: z.infer<typeof member_schema>[]) => [...prev, variable].sort((a, b) => b.threshold - a.threshold))
+        onSuccess: (_, newMember) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.members, 'GET'], (prev: z.infer<typeof member_schema>[]) => [...prev, newMember].sort((a, b) => b.threshold - a.threshold))
         }
     })
 }
 function useUpdateMember() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.members, "PATCH"],
+        mutationKey: [dbList.basicSetting, collectionList.members, "PATCH"],
         mutationFn: (data: z.infer<typeof member_schema>) => fetch(`/api/mongoDB/basicSetting/${collectionList.members}`, {
             method: "PATCH",
             headers: {
@@ -45,19 +46,19 @@ function useUpdateMember() {
             },
             body: JSON.stringify(data),
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.members, 'GET'], (prev: z.infer<typeof member_schema>[]) => prev.map(member => member._id === variable._id ? variable : member))
+        onSuccess: (_, newMember) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.members, 'GET'], (prev: z.infer<typeof member_schema>[]) => prev.map(member => member._id === newMember._id ? newMember : member))
         }
     })
 }
 function useDeleteMember() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.members, 'DELETE'],
+        mutationKey: [dbList.basicSetting, collectionList.members, 'DELETE'],
         mutationFn: (id: z.infer<typeof member_schema.shape._id>) => fetch(`/api/mongoDB/basicSetting/${collectionList.members}?id=${id}`, {
             method: "DELETE",
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.members, 'GET'], (prev: z.infer<typeof member_schema>[]) => prev.filter(member => member._id !== variable))
+        onSuccess: (_, deleteId) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.members, 'GET'], (prev: z.infer<typeof member_schema>[]) => prev.filter(member => member._id !== deleteId))
         }
     })
 }
@@ -66,7 +67,7 @@ function useDeleteMember() {
 
 function useGetCategories() {
     return useQuery<z.infer<typeof category_schema>[]>({
-        queryKey: ['admin', dbList.basicSetting, collectionList.categories, 'GET'],
+        queryKey: [dbList.basicSetting, collectionList.categories, 'GET'],
         queryFn: async () => {
             const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.categories}`)
             if (!res.ok) {
@@ -78,7 +79,7 @@ function useGetCategories() {
 }
 function useCreateCategory() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.categories, 'POST'],
+        mutationKey: [dbList.basicSetting, collectionList.categories, 'POST'],
         mutationFn: (data: z.infer<typeof category_schema>) => fetch(`/api/mongoDB/basicSetting/${collectionList.categories}`, {
             method: "POST",
             headers: {
@@ -86,14 +87,14 @@ function useCreateCategory() {
             },
             body: JSON.stringify(data),
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.categories, 'GET'], (prev: z.infer<typeof category_schema>[]) => [...prev, variable])
+        onSuccess: (_, newCategory) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.categories, 'GET'], (prev: z.infer<typeof category_schema>[]) => [...prev, newCategory])
         },
     })
 }
 function useUpdateCategory() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.categories, "PATCH"],
+        mutationKey: [dbList.basicSetting, collectionList.categories, "PATCH"],
         mutationFn: (data: z.infer<typeof category_schema>) => fetch(`/api/mongoDB/basicSetting/${collectionList.categories}`, {
             method: "PATCH",
             headers: {
@@ -101,19 +102,23 @@ function useUpdateCategory() {
             },
             body: JSON.stringify(data),
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.categories, 'GET'], (prev: z.infer<typeof category_schema>[]) => prev.map(category => variable._id === category._id ? variable : category))
+        onSuccess: (_, newCategory) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.categories, 'GET'], (prev: z.infer<typeof category_schema>[]) => prev.map(category => newCategory._id === category._id ? newCategory : category))
         }
     })
 }
 function useDeleteCategory() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.categories, "DELETE"],
+        mutationKey: [dbList.basicSetting, collectionList.categories, "DELETE"],
         mutationFn: (id: z.infer<typeof category_schema.shape._id>) => fetch(`/api/mongoDB/basicSetting/${collectionList.categories}?id=${id}`, {
             method: "DELETE",
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.categories, 'GET'], (prev: z.infer<typeof category_schema>[]) => prev.filter(category => category._id !== variable))
+        onSuccess: (_, deleteId) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.categories, 'GET'], (prev: z.infer<typeof category_schema>[]) => prev.filter(category => category._id !== deleteId))
+            queryClient.setQueryData([dbList.products, collectionList.products, "GET"], (prev: z.infer<typeof product_listSchema>[]) => prev.map(product => ({
+                ...product,
+                categories: product.categories.filter(category => category._id !== deleteId)
+            })))
         }
     })
 }
@@ -123,7 +128,7 @@ function useDeleteCategory() {
 
 function useGetTags() {
     return useQuery<z.infer<typeof tag_schema>[]>({
-        queryKey: ['admin', dbList.basicSetting, collectionList.tags, 'GET'],
+        queryKey: [dbList.basicSetting, collectionList.tags, 'GET'],
         queryFn: async () => {
             const res = await fetch(`/api/mongoDB/basicSetting/${collectionList.tags}`)
             if (!res.ok) {
@@ -135,7 +140,7 @@ function useGetTags() {
 }
 function useCreateTag() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.tags, 'POST'],
+        mutationKey: [dbList.basicSetting, collectionList.tags, 'POST'],
         mutationFn: (data: z.infer<typeof tag_schema>) => fetch(`/api/mongoDB/basicSetting/${collectionList.tags}`, {
             method: "POST",
             headers: {
@@ -143,14 +148,14 @@ function useCreateTag() {
             },
             body: JSON.stringify(data),
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.tags, 'GET'], (prev: z.infer<typeof tag_schema>[]) => [...prev, variable])
+        onSuccess: (_, newTag) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.tags, 'GET'], (prev: z.infer<typeof tag_schema>[]) => [...prev, newTag])
         }
     })
 }
 function useUpdateTag() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.tags, "PATCH"],
+        mutationKey: [dbList.basicSetting, collectionList.tags, "PATCH"],
         mutationFn: (data: z.infer<typeof tag_schema>) => fetch(`/api/mongoDB/basicSetting/${collectionList.tags}`, {
             method: "PATCH",
             headers: {
@@ -158,19 +163,23 @@ function useUpdateTag() {
             },
             body: JSON.stringify(data),
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.tags, 'GET'], (prev: z.infer<typeof tag_schema>[]) => prev.map(tag => tag._id === variable._id ? variable : tag))
+        onSuccess: (_, newTag) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.tags, 'GET'], (prev: z.infer<typeof tag_schema>[]) => prev.map(tag => tag._id === newTag._id ? newTag : tag))
         }
     })
 }
 function useDeleteTag() {
     return useMutation({
-        mutationKey: ['admin', dbList.basicSetting, collectionList.tags, 'DELETE'],
+        mutationKey: [dbList.basicSetting, collectionList.tags, 'DELETE'],
         mutationFn: (id: z.infer<typeof tag_schema.shape._id>) => fetch(`/api/mongoDB/basicSetting/${collectionList.tags}?id=${id}`, {
             method: "DELETE",
         }),
-        onSuccess: (_, variable) => {
-            queryClient.setQueryData(['admin', dbList.basicSetting, collectionList.tags, 'GET'], (prev: z.infer<typeof tag_schema>[]) => prev.filter(tag => tag._id !== variable))
+        onSuccess: (_, deleteId) => {
+            queryClient.setQueryData([dbList.basicSetting, collectionList.tags, 'GET'], (prev: z.infer<typeof tag_schema>[]) => prev.filter(tag => tag._id !== deleteId))
+            queryClient.setQueryData([dbList.products, collectionList.products, "GET"], (prev: z.infer<typeof product_listSchema>[]) => prev.map(product => ({
+                ...product,
+                tags: product.tags.filter(tag => tag._id !== deleteId)
+            })))
         }
     })
 }

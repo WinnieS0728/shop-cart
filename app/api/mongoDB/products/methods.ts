@@ -25,6 +25,21 @@ function useGETproducts() {
     })
 }
 
+function useGEToneProducts(id: string) {
+    return useQuery<z.infer<typeof product_listSchema>>({
+        queryKey: [dbList.products, collectionList.products, "GET", {
+            id
+        }],
+        queryFn: async () => {
+            const res = await fetch(`/api/mongoDB/products?id=${id}`)
+            if (!res.ok) {
+                return undefined
+            }
+            return await res.json()
+        }
+    })
+}
+
 function usePOSTproduct() {
     return useMutation({
         mutationKey: [dbList.products, collectionList.products, "POST"],
@@ -35,11 +50,19 @@ function usePOSTproduct() {
             },
             body: JSON.stringify(data)
         }),
-        onSuccess: ()=>{
-            queryClient.invalidateQueries({
-                queryKey: [dbList.products, collectionList.products, "GET"]
-            })
-        }
+    })
+}
+
+function usePATCHproduct() {
+    return useMutation({
+        mutationKey: [dbList.products, collectionList.products, "PATCH"],
+        mutationFn: (data: z.infer<typeof product_schema>) => fetch(`/api/mongoDB/products`, {
+            method: "PATCH",
+            headers: {
+                "Content-types": "application/json"
+            },
+            body: JSON.stringify(data)
+        }),
     })
 }
 
@@ -48,6 +71,8 @@ function usePOSTproduct() {
 export function useProductMethods() {
     return {
         GET: useGETproducts(),
-        POST: usePOSTproduct()
+        GETbyId: useGEToneProducts,
+        POST: usePOSTproduct(),
+        PATCH: usePATCHproduct(),
     }
 }

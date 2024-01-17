@@ -76,21 +76,37 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
         [`${collectionList.categories}`]: DB_basicSetting_category,
         [`${collectionList.tags}`]: DB_basicSetting_tag,
     } } = conn
+    const conn2 = connectToMongo('products')
+    const { models: { [`${collectionList.products}`]: DB_product } } = conn2
     try {
         switch (type) {
             case 'members':
                 await DB_basicSetting_member.findByIdAndDelete(deleteId)
-                return NextResponse.json('刪除成功', {
+                return NextResponse.json('刪除成功 !', {
                     status: 200
                 })
             case 'categories':
                 await DB_basicSetting_category.findByIdAndDelete(deleteId)
-                return NextResponse.json('刪除成功', {
+                await DB_product.updateMany({}, {
+                    $pull: {
+                        categories: {
+                            $eq: deleteId
+                        }
+                    }
+                })
+                return NextResponse.json('刪除成功 !', {
                     status: 200
                 })
             case 'tags':
                 await DB_basicSetting_tag.findByIdAndDelete(deleteId)
-                return NextResponse.json('刪除成功', {
+                await DB_product.updateMany({}, {
+                    $pull: {
+                        tags: {
+                            $eq: deleteId
+                        }
+                    }
+                })
+                return NextResponse.json('刪除成功 !', {
                     status: 200
                 })
 
@@ -101,11 +117,13 @@ export async function DELETE(req: NextRequest, { params: { type } }: params) {
         }
 
     } catch (error) {
-        return NextResponse.json('刪除失敗', {
+        console.log(error);
+        return NextResponse.json(error, {
             status: 500
         })
     } finally {
         await conn.close()
+        await conn2.close()
     }
 }
 

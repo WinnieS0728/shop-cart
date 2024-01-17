@@ -1,22 +1,34 @@
 "use client";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { product_schema } from "@/libs/mongoDB/schemas/product";
 import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
-import { useEdgeStore } from "@/libs/edgestore";
 import { ReactSelect } from "@components/UI/select";
 import { toast } from "react-toastify";
 import FormContainer from "../UI/form";
 import ProductImgDropzone from "./product img dropzone";
 import { useProductMethods } from "@/app/api/mongoDB/products/methods";
 import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
-export default function CreateProductForm() {
-  const { edgestore } = useEdgeStore();
+import { useImageMethods } from "@/hooks/useImage";
+import { useSearchParams } from "next/navigation";
+import { Types } from "mongoose";
+import { Loading } from "../UI/loading";
+
+interface props {
+  as: "create" | "update";
+}
+
+export default function ProductForm({ as }: props) {
+  const search = useSearchParams();
+  const productId = search.get("id");
   const {
+    GETbyId,
     POST: { mutateAsync: createNewProduct },
+    PATCH: { mutateAsync: updateProduct },
   } = useProductMethods();
+  const { data: product } = GETbyId(productId || "");
   const {
     GET: { data: categoryList, isPending: isGetCategoryLoading },
   } = useBasicSettingMethods().category;
@@ -28,6 +40,7 @@ export default function CreateProductForm() {
     resolver: zodResolver(product_schema),
     criteriaMode: "all",
     defaultValues: {
+      _id: new Types.ObjectId(),
       title: "",
       content: "",
       categories: [],
@@ -47,14 +60,36 @@ export default function CreateProductForm() {
     watch,
     control,
     formState: { isSubmitting },
+    reset,
   } = methods;
+  const prevImage = useRef<string>("");
+  useEffect(() => {
+    if (as === "update" && product) {
+      reset({
+        _id: product._id,
+        title: product.title,
+        content: product.content,
+        categories: product.categories.map((category) => category._id),
+        price: product.price,
+        stock: product.stock,
+        sold: product.sold,
+        imageUrl: product.imageUrl,
+        tags: product.tags.map((tag) => tag._id),
+      });
+      prevImage.current = product.imageUrl.normal;
+    }
+  }, [as, product, reset]);
 
-  function getIsImageUploadDone() {
-    return !!watch("imageUrl.normal");
-  }
+  const isProductHasImage = !!watch("imageUrl.normal");
+
+  const { confirmImage, imageProcess } = useImageMethods("productImage");
 
   async function onSubmit(data: z.infer<typeof product_schema>) {
-    console.log(data);
+    // console.log(data);
+    as === "create" ? onCreate(data) : onUpdate(data);
+  }
+
+  function onCreate(data: z.infer<typeof product_schema>) {
     const request = new Promise(async (resolve, reject) => {
       const res = await createNewProduct(data);
 
@@ -63,25 +98,68 @@ export default function CreateProductForm() {
       }
 
       try {
-        await confirmImageUpload(data.imageUrl.normal);
-        resolve(true);
+        await confirmImage(data.imageUrl.normal);
+        resolve(await res.json());
       } catch (error) {
         console.log(error);
-        reject(false);
+        reject(await res.json());
       }
     });
 
     toast.promise(request, {
       pending: "建立中...",
-      success: "建立完成",
-      error: "建立失敗",
+      success: {
+        render({ data }) {
+          return `${data}`;
+        },
+      },
+      error: {
+        render({ data }) {
+          return `建立失敗, ${data}`;
+        },
+      },
     });
   }
 
-  async function confirmImageUpload(url: string) {
-    await edgestore.productImage.confirmUpload({
-      url: url,
+  function onUpdate(data: z.infer<typeof product_schema>) {
+    // console.log(data);
+    const request = new Promise(async (resolve, reject) => {
+      const res = await updateProduct(data);
+
+      if (!res.ok) {
+        reject(false);
+      }
+
+      try {
+        await imageProcess(prevImage.current, data.imageUrl.normal);
+        resolve(await res.json());
+      } catch (error) {
+        console.log(error);
+        reject(await res.json());
+      }
     });
+
+    toast.promise(request, {
+      pending: "更新中...",
+      success: {
+        render({ data }) {
+          return `${data}`;
+        },
+      },
+      error: {
+        render({ data }) {
+          return `${data}`;
+        },
+      },
+    });
+  }
+
+  if (!product || isGetCategoryLoading || isGetTagsLoading) {
+    return (
+      <>
+        <Loading.block height={16 * 30} />
+      </>
+    );
   }
 
   return (
@@ -104,7 +182,7 @@ export default function CreateProductForm() {
                 <Controller
                   control={control}
                   name="categories"
-                  render={({ field: { onChange } }) => (
+                  render={({ field: { onChange, value } }) => (
                     <ReactSelect
                       name="categoryList"
                       options={categoryList}
@@ -115,7 +193,8 @@ export default function CreateProductForm() {
                           .title
                       }
                       getOptionValue={(option) =>
-                        (option as NonNullable<typeof categoryList>[number])._id as string
+                        (option as NonNullable<typeof categoryList>[number])
+                          ._id as string
                       }
                       onChange={(selectList) => {
                         onChange(
@@ -124,6 +203,11 @@ export default function CreateProductForm() {
                           ),
                         );
                       }}
+                      value={value.map((categoryId) => {
+                        return categoryList!.find(
+                          (category) => category._id === categoryId,
+                        );
+                      })}
                       isMulti
                     />
                   )}
@@ -139,7 +223,7 @@ export default function CreateProductForm() {
                 <Controller
                   control={control}
                   name="tags"
-                  render={({ field: { onChange } }) => (
+                  render={({ field: { onChange, value } }) => (
                     <ReactSelect
                       options={tagList}
                       isLoading={isGetTagsLoading}
@@ -148,7 +232,8 @@ export default function CreateProductForm() {
                         (option as NonNullable<typeof tagList>[number]).title
                       }
                       getOptionValue={(option) =>
-                        (option as NonNullable<typeof tagList>[number])._id as string
+                        (option as NonNullable<typeof tagList>[number])
+                          ._id as string
                       }
                       onChange={(selectList) => {
                         onChange(
@@ -157,6 +242,9 @@ export default function CreateProductForm() {
                           ),
                         );
                       }}
+                      value={value.map((tagId) =>
+                        tagList!.find((tag) => tag._id === tagId),
+                      )}
                       isMulti
                     />
                   )}
@@ -164,7 +252,10 @@ export default function CreateProductForm() {
               </Label>
             </div>
           </div>
-          <InputSubmit value={"儲存"} disabled={isSubmitting} />
+          <InputSubmit
+            value={"儲存"}
+            disabled={isSubmitting || !isProductHasImage}
+          />
         </FormContainer>
       </FormProvider>
     </>

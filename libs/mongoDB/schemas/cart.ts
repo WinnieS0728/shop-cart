@@ -1,8 +1,8 @@
-import { Schema, SchemaTypes, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const cartModel = new Schema({
-    products: [SchemaTypes.ObjectId],
-    order_from: SchemaTypes.ObjectId,
+    products: [Schema.Types.ObjectId],
+    order_from: Schema.Types.ObjectId,
 }, {
     timestamps: true,
 })

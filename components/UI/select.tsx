@@ -40,7 +40,10 @@ function useClient() {
   return isClient;
 }
 
-export function ReactSelect({ className, ...props }: Parameters<Select>[0]) {
+export function ReactSelect({
+  className,
+  ...props
+}: Parameters<Select>[0]) {
   return (
     <>
       <Select

@@ -1,6 +1,5 @@
 import { Schema, Types } from "mongoose";
 import { z } from "zod";
-import { collectionList, connectToMongo } from "../connect mongo";
 
 export const product_schema = z.object({
     _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
@@ -28,10 +27,6 @@ const DB_product_schema = new Schema<z.infer<typeof product_schema>>({
     },
     categories: {
         type: [Schema.Types.ObjectId],
-        ref: () => {
-            const { models: { [`${collectionList.categories}`]: DB_categories } } = connectToMongo('basicSetting')
-            return DB_categories
-        },
         default: [],
     },
     price: {
@@ -58,10 +53,6 @@ const DB_product_schema = new Schema<z.infer<typeof product_schema>>({
     },
     tags: {
         type: [Schema.Types.ObjectId],
-        ref: () => {
-            const { models: { [`${collectionList.tags}`]: DB_tags } } = connectToMongo('basicSetting')
-            return DB_tags
-        },
         default: [],
     }
 }, {

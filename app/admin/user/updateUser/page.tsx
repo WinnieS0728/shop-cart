@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import AvatarDropzone from "@/components/users/avatar dropzone";
 import { useEdgeStore } from "@/libs/edgestore";
 import LevelSection from "@/components/users/level";
+import { useImageMethods } from "@/hooks/useImage";
 
 interface props {
   session: Session;
@@ -46,8 +47,9 @@ export default function UpdateUserForm({ session }: props) {
   const {
     handleSubmit,
     formState: { isSubmitting, defaultValues },
-    watch,
   } = methods;
+
+  const { imageProcess } = useImageMethods('userAvatar');
 
   async function onSubmit(data: z.infer<typeof user_schema>) {
     console.log(data);
@@ -56,27 +58,7 @@ export default function UpdateUserForm({ session }: props) {
       if (!res.ok) {
         reject(await res.json());
       } else {
-        if (!data.avatar.normal && !defaultValues?.avatar?.normal) {
-          // ? do nothing
-        } else if (!data.avatar.normal && defaultValues?.avatar?.normal) {
-          await edgestore.userAvatar.delete({
-            url: defaultValues.avatar.normal,
-          });
-        } else if (
-          defaultValues?.avatar?.normal &&
-          data.avatar.normal !== defaultValues.avatar.normal
-        ) {
-          await edgestore.userAvatar.confirmUpload({
-            url: data.avatar.normal,
-          });
-          await edgestore.userAvatar.delete({
-            url: defaultValues.avatar.normal,
-          });
-        } else {
-          await edgestore.userAvatar.confirmUpload({
-            url: data.avatar.normal,
-          });
-        }
+        imageProcess(defaultValues?.avatar?.normal, data.avatar.normal)
         resolve(await res.json());
       }
     });
