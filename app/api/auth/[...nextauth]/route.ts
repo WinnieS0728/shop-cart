@@ -1,5 +1,5 @@
 import { connectToMongo, collectionList } from "@/libs/mongoDB/connect mongo"
-import NextAuth, { DefaultSession, NextAuthOptions, Session, User } from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import bcrypt from 'bcryptjs'
 
 import CredentialsProvider from "next-auth/providers/credentials"

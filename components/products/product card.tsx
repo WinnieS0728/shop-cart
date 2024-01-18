@@ -31,34 +31,35 @@ export default function ProductCard({ product }: props) {
   }
   return (
     <>
-      {/* <Link href={`menu/edit?id=${product._id}`}> */}
-      <article className="row-span-4 grid grid-cols-1 grid-rows-subgrid gap-2 rounded-xl border-4 p-4">
-        <div className="relative w-full">
-          <Image
-            src={product.imageUrl.thumbnail}
-            alt={`${product.title} image`}
-            width={300}
-            height={400}
-            priority
-            className="aspect-square w-full border object-contain"
-          />
-          {!!product.tags.length && (
-            <div className="absolute bottom-0 left-0 flex w-full items-center justify-end bg-gray-100/50 p-2">
-              {product.tags.map((tag) => (
-                <span
-                  className="rounded-md bg-green-500 px-2 text-white"
-                  key={tag._id as string}
-                >
-                  {tag.title}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+      <article className="row-span-4 grid grid-rows-subgrid gap-2 rounded-xl border-4 p-4">
+        <Link href={`menu/edit?id=${product._id}`}>
+          <div className="relative w-full">
+            <Image
+              src={product.imageUrl.thumbnail}
+              alt={`${product.title} image`}
+              width={300}
+              height={400}
+              priority
+              className="aspect-square w-full border object-contain"
+            />
+            {!!product.tags.length && (
+              <div className="absolute bottom-0 left-0 flex w-full items-center justify-end bg-gray-100/50 p-2">
+                {product.tags.map((tag) => (
+                  <span
+                    className="rounded-md bg-green-500 px-2 text-white"
+                    key={tag._id as string}
+                  >
+                    {tag.title}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </Link>
         <div>
           <p className="text-2xl">{product.title}</p>
         </div>
-        <div className="flex items-center justify-start gap-2 mb-4">
+        <div className="mb-4 flex flex-wrap justify-start items-start gap-2">
           {product.categories.map((category) => (
             <span
               className="whitespace-nowrap rounded-md bg-yellow-500 px-2 text-white"
@@ -78,7 +79,6 @@ export default function ProductCard({ product }: props) {
           </div>
         </div>
       </article>
-      {/* </Link> */}
     </>
   );
 }

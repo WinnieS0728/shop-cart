@@ -23,7 +23,7 @@ function useUpdatePassword() {
                 "Content-type": 'application/json'
             },
             body: JSON.stringify(data)
-        })
+        }),
     })
 }
 

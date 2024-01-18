@@ -1,4 +1,4 @@
-import { connectToMongo, collectionList, dbList } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo, collectionList } from "@/libs/mongoDB/connect mongo";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from 'bcryptjs'
 export async function POST(req: NextRequest) {
