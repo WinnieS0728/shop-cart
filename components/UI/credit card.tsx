@@ -25,10 +25,12 @@ function CardNumber() {
       <InputText
         name="payment.cardNumber"
         maxLength={19}
-        value={value
-          ?.replace(/[^0-9]/gi, "")
-          .replace(/(\d{4})/g, "$1 ")
-          .trim() || ""}
+        value={
+          value
+            ?.replace(/[^0-9]/gi, "")
+            .replace(/(\d{4})/g, "$1 ")
+            .trim() || ""
+        }
         onChange={(event) => {
           const input = event.target.value;
           const value = input
@@ -97,7 +99,7 @@ function Expiration_date() {
           control={control}
           name="payment.expiration_date.0"
           render={({
-            field: { onChange },
+            field: { onChange, value },
             fieldState: { error },
             formState: { defaultValues },
           }) => (
@@ -107,14 +109,7 @@ function Expiration_date() {
                 name="expiration_date-month"
                 className="w-24"
                 options={monthOption}
-                defaultValue={
-                  defaultValues?.payment?.expiration_date[0]
-                    ? {
-                        label: defaultValues.payment.expiration_date[0],
-                        value: defaultValues.payment.expiration_date[0],
-                      }
-                    : undefined
-                }
+                value={monthOption.find((month) => month.label === value)}
                 onChange={(option) => {
                   onChange((option as { label: string; value: string }).value);
                 }}
@@ -130,7 +125,7 @@ function Expiration_date() {
           control={control}
           name="payment.expiration_date.1"
           render={({
-            field: { onChange },
+            field: { onChange, value },
             fieldState: { error },
             formState: { defaultValues },
           }) => (
@@ -140,14 +135,7 @@ function Expiration_date() {
                 name="expiration_date-year"
                 className="w-24"
                 options={yearOption}
-                defaultValue={
-                  defaultValues?.payment?.expiration_date[1]
-                    ? {
-                        label: defaultValues.payment.expiration_date[1],
-                        value: defaultValues.payment.expiration_date[1],
-                      }
-                    : undefined
-                }
+                value={yearOption.find((year) => year.label === value)}
                 onChange={(option) => {
                   onChange((option as { label: string; value: string }).value);
                 }}

@@ -31,56 +31,54 @@ export default function ProductCard({ product }: props) {
   }
   return (
     <>
-      <Link href={`menu/edit?id=${product._id}`}>
-        <article className="flex flex-col items-center justify-center gap-4 rounded-xl border-4 p-2">
-          <div className="relative w-full">
-            <Image
-              src={product.imageUrl.thumbnail}
-              alt={`${product.title} image`}
-              width={300}
-              height={400}
-              priority
-              className="aspect-square w-full border object-contain"
-            />
-            {!!product.tags.length && (
-              <div className="absolute bottom-0 left-0 flex w-full items-center justify-end bg-gray-100/50 p-2">
-                {product.tags.map((tag) => (
-                  <span
-                    className="rounded-md bg-green-500 px-2 text-white"
-                    key={tag._id as string}
-                  >
-                    {tag.title}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-          <article className="w-full px-4">
-            <div>
-              <p className="mb-2 text-xl">{product.title}</p>
-            </div>
-            <div className="flex flex-wrap items-center justify-start gap-2">
-              {product.categories.map((category) => (
+      {/* <Link href={`menu/edit?id=${product._id}`}> */}
+      <article className="row-span-4 grid grid-cols-1 grid-rows-subgrid gap-2 rounded-xl border-4 p-4">
+        <div className="relative w-full">
+          <Image
+            src={product.imageUrl.thumbnail}
+            alt={`${product.title} image`}
+            width={300}
+            height={400}
+            priority
+            className="aspect-square w-full border object-contain"
+          />
+          {!!product.tags.length && (
+            <div className="absolute bottom-0 left-0 flex w-full items-center justify-end bg-gray-100/50 p-2">
+              {product.tags.map((tag) => (
                 <span
-                  className="whitespace-nowrap rounded-md bg-yellow-500 px-2 text-white"
-                  key={category._id as string}
+                  className="rounded-md bg-green-500 px-2 text-white"
+                  key={tag._id as string}
                 >
-                  {category.title}
+                  {tag.title}
                 </span>
               ))}
             </div>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl text-red-500">
-                ${product.price.toLocaleString()}
-              </p>
-              <div>
-                {<p>剩餘 {getStockScale(product.stock)}</p>}
-                <small>已售出 {getSoldScale(product.sold)}</small>
-              </div>
-            </div>
-          </article>
-        </article>
-      </Link>
+          )}
+        </div>
+        <div>
+          <p className="text-2xl">{product.title}</p>
+        </div>
+        <div className="flex items-center justify-start gap-2 mb-4">
+          {product.categories.map((category) => (
+            <span
+              className="whitespace-nowrap rounded-md bg-yellow-500 px-2 text-white"
+              key={category._id as string}
+            >
+              {category.title}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-3xl text-red-500">
+            ${product.price.toLocaleString()}
+          </p>
+          <div>
+            {<p>剩餘 {getStockScale(product.stock)}</p>}
+            <small>已售出 {getSoldScale(product.sold)}</small>
+          </div>
+        </div>
+      </article>
+      {/* </Link> */}
     </>
   );
 }

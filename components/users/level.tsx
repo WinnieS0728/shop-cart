@@ -56,7 +56,7 @@ export default function LevelSection() {
               再消費
               {isSuccess && (
                 <span className="text-2xl">
-                  {level.next.threshold - consumption ?? 0}
+                  {level.next.threshold - (consumption ?? 0)}
                 </span>
               )}
               元可升級為{" "}

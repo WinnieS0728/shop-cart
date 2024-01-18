@@ -11,7 +11,7 @@ export default function ProductList() {
 
   return (
     <>
-      <section className="grid grid-cols-2 gap-4 p-4">
+    <section className="grid grid-rows-[repeat(4,auto)] grid-cols-2 gap-4 p-4">
         {isPending
           ? Array.from({ length: 4 }).map((_, index) => (
               <Fragment key={index}>
