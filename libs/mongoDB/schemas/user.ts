@@ -36,6 +36,11 @@ export const user_schema = z.object({
     role: z.enum(['admin', 'user']).default('user')
 })
 
+export const signIn_schema = user_schema.pick({
+    email: true,
+    password: true
+})
+
 export const signUp_schema = user_schema.pick({
     username: true,
     email: true,

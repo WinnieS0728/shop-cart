@@ -1,7 +1,7 @@
+import { authOptions } from "@/libs/next auth";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import React, { ReactNode } from "react";
-import { authOptions } from "../api/auth/[...nextauth]/route";
 
 export default async function AdminLayout({
   children,

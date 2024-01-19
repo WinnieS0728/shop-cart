@@ -12,7 +12,9 @@ import "./globals.scss";
 import { SessionProvider } from "next-auth/react";
 import MySessionProvider from "@/providers/session";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+
+import TrpcProvider from "@/providers/trpc provider";
+import { authOptions } from "@/libs/next auth";
 
 const handWritingFont = localFont({
   src: "../public/fonts/ChenYuluoyan-Thin.woff2",
@@ -36,6 +38,7 @@ export default async function RootLayout({
     <html lang="en">
       <SmoothScrollProvider>
         <ReactQueryProvider>
+          <TrpcProvider>
           <EdgeStoreProvider>
             <MySessionProvider session={session}>
               <body>
@@ -56,6 +59,7 @@ export default async function RootLayout({
               </body>
             </MySessionProvider>
           </EdgeStoreProvider>
+          </TrpcProvider>
         </ReactQueryProvider>
       </SmoothScrollProvider>
     </html>

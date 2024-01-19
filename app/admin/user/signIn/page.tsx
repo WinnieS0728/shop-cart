@@ -11,11 +11,8 @@ import { useRouter } from "next/navigation";
 import HrWithText from "@UI/hr with text";
 import OtherSignInProvider from "@/components/users/3rd party sign in";
 import Link from "next/link";
+import { signIn_schema } from "@/libs/mongoDB/schemas/user";
 
-const signIn_schema = z.object({
-  email: z.string().min(1, "請填寫  email").email("請填入正確 email 格式"),
-  password: z.string().min(1, "請填寫密碼"),
-});
 export default function SignInForm() {
   const router = useRouter();
   const methods = useForm<z.infer<typeof signIn_schema>>({

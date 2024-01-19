@@ -15,16 +15,18 @@ import Link from "next/link";
 import { useUserMethods } from "@/app/api/mongoDB/users/methods";
 import { toast } from "react-toastify";
 import AvatarDropzone from "@/components/users/avatar dropzone";
-import { useEdgeStore } from "@/libs/edgestore";
 import LevelSection from "@/components/users/level";
 import { useImageMethods } from "@/hooks/useImage";
+import { trpc } from "@/providers/trpc provider";
 
 interface props {
   session: Session;
 }
 
 export default function UpdateUserForm({ session }: props) {
-  const { edgestore } = useEdgeStore();
+  // console.log(trpc.user.getUserByEmail.useQuery({
+  //   email: 'user1@aa.aa'
+  // }).data);
   const {
     UPDATE_USER: { mutateAsync: updateUser },
   } = useUserMethods();
@@ -49,7 +51,7 @@ export default function UpdateUserForm({ session }: props) {
     formState: { isSubmitting, defaultValues },
   } = methods;
 
-  const { imageProcess } = useImageMethods('userAvatar');
+  const { imageProcess } = useImageMethods("userAvatar");
 
   async function onSubmit(data: z.infer<typeof user_schema>) {
     console.log(data);
@@ -58,7 +60,7 @@ export default function UpdateUserForm({ session }: props) {
       if (!res.ok) {
         reject(await res.json());
       } else {
-        imageProcess(defaultValues?.avatar?.normal, data.avatar.normal)
+        imageProcess(defaultValues?.avatar?.normal, data.avatar.normal);
         resolve(await res.json());
       }
     });
