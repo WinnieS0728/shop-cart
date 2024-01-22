@@ -7,7 +7,9 @@ import {
   InputText,
   Label,
 } from "@/components/UI/inputs";
+import { trpc } from "@/providers/trpc provider";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Types } from "mongoose";
 import { useSession } from "next-auth/react";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -16,6 +18,7 @@ import { z } from "zod";
 
 export const password_schema = z
   .object({
+    _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
     email: z.string().email(),
     origin_password: z.string().min(1, "請填入舊密碼 !"),
     new_password: z.string().min(1, "請填入新密碼 !"),
@@ -23,11 +26,7 @@ export const password_schema = z
   })
   .refine(
     ({ new_password, confirm_password }) => {
-      if (new_password !== confirm_password) {
-        return false;
-      } else {
-        return true;
-      }
+      return new_password === confirm_password;
     },
     {
       message: "確認密碼與新密碼不同 !",
@@ -37,12 +36,13 @@ export const password_schema = z
 
 export default function UpdatePassword() {
   const { data: session } = useSession();
-  const {
-    UPDATE_PASSWORD: { mutateAsync: updatePassword },
-  } = useUserMethods();
+  console.log(session);
+  const { mutateAsync: updatePassword } =
+    trpc.user.updatePassword.useMutation();
   const methods = useForm<z.infer<typeof password_schema>>({
     resolver: zodResolver(password_schema),
     defaultValues: {
+      _id: session?.token.sub ?? "",
       email: session?.user?.email ?? "",
       origin_password: "",
       new_password: "",
@@ -56,12 +56,14 @@ export default function UpdatePassword() {
   async function onSubmit(data: z.infer<typeof password_schema>) {
     // console.log(data);
     const request = new Promise(async (resolve, reject) => {
-      const res = await updatePassword(data);
-      if (res.ok) {
-        resolve(await res.json());
-      } else {
-        reject(await res.json());
-      }
+      await updatePassword(data, {
+        onError(error) {
+          reject(error);
+        },
+        onSettled(res) {
+          resolve(res);
+        },
+      });
     });
     toast.promise(request, {
       pending: "處理中...",

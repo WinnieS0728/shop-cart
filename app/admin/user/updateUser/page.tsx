@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import { user_schema } from "@/libs/mongoDB/schemas/user";
@@ -9,10 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FormContainer from "@UI/form";
 import { signOut } from "next-auth/react";
 import { Session } from "next-auth";
-import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@UI/loading";
 import Link from "next/link";
-import { useUserMethods } from "@/app/api/mongoDB/users/methods";
 import { toast } from "react-toastify";
 import AvatarDropzone from "@/components/users/avatar dropzone";
 import LevelSection from "@/components/users/level";
@@ -24,59 +22,73 @@ interface props {
 }
 
 export default function UpdateUserForm({ session }: props) {
-  // console.log(trpc.user.getUserByEmail.useQuery({
-  //   email: 'user1@aa.aa'
-  // }).data);
   const {
-    UPDATE_USER: { mutateAsync: updateUser },
-  } = useUserMethods();
-  const { data: userData, isPending } = useQuery<z.infer<typeof user_schema>>({
-    queryKey: ["admin", "user", { key: "email", value: session.user!.email }],
-    queryFn: async () => {
-      const res = await fetch(`/api/mongoDB/users/${session.user!.email}`);
-      return await res.json();
+    data: userData,
+    isPending,
+    refetch: refetchUser,
+  } = trpc.user.getUserByEmail.useQuery({
+    email: session.user?.email || "",
+  });
+  const { mutateAsync: updateUser } = trpc.user.updateUser.useMutation({
+    onSettled: () => {
+      refetchUser();
     },
   });
+
   const methods = useForm<z.infer<typeof user_schema>>({
     resolver: zodResolver(user_schema),
-    defaultValues: userData
-      ? userData
-      : async () => {
-          const res = await fetch(`/api/mongoDB/users/${session.user!.email}`);
-          return await res.json();
-        },
+    defaultValues: {
+      _id: "",
+      username: "",
+      email: "",
+      password: "",
+      avatar: {
+        normal: "",
+        thumbnail: "",
+      },
+      phone: "",
+      address: "",
+      payment: {
+        cardNumber: "",
+        expiration_date: ["", ""],
+        security_code: "",
+      },
+      consumption: 0,
+      role: "user",
+    },
   });
   const {
     handleSubmit,
     formState: { isSubmitting, defaultValues },
+    reset,
   } = methods;
+
+  useEffect(() => {
+    if (userData) {
+      reset(userData);
+    }
+  }, [reset, userData]);
 
   const { imageProcess } = useImageMethods("userAvatar");
 
   async function onSubmit(data: z.infer<typeof user_schema>) {
-    console.log(data);
+    // console.log(data);
     const request = new Promise(async (resolve, reject) => {
-      const res = await updateUser(data);
-      if (!res.ok) {
-        reject(await res.json());
-      } else {
-        imageProcess(defaultValues?.avatar?.normal, data.avatar.normal);
-        resolve(await res.json());
-      }
+      await updateUser(data, {
+        onError(error) {
+          reject(error);
+        },
+        onSettled(res, _, variables) {
+          imageProcess(defaultValues?.avatar?.normal, variables.avatar.normal);
+          resolve(res);
+        },
+      });
     });
 
     toast.promise(request, {
       pending: "更新中...",
-      error: {
-        render({ data }) {
-          return `${data}`;
-        },
-      },
-      success: {
-        render({ data }) {
-          return `${data}`;
-        },
-      },
+      error: `修改失敗 !`,
+      success: `修改成功 !`,
     });
   }
 

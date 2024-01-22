@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
+import { JWT } from "next-auth/jwt"
 
 export const authOptions = {
     secret: process.env.NEXTAUTH_SECRET,
@@ -86,10 +87,7 @@ export const authOptions = {
         async session({ session, token }) {
             return {
                 ...session,
-                user: {
-                    ...session.user,
-                    role: token.role
-                }
+                token
             }
         },
     },
@@ -99,12 +97,17 @@ export const authOptions = {
 
 } satisfies NextAuthOptions
 
-
 declare module 'next-auth' {
     interface Session {
-        role: "admin" | 'user'
+        token: JWT
     }
     interface User {
+        role: "admin" | "user"
+    }
+}
+
+declare module 'next-auth/jwt' {
+    interface JWT {
         role: "admin" | "user"
     }
 }

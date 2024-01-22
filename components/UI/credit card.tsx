@@ -101,7 +101,6 @@ function Expiration_date() {
           render={({
             field: { onChange, value },
             fieldState: { error },
-            formState: { defaultValues },
           }) => (
             <div className="flex flex-col">
               <ReactSelect
@@ -127,7 +126,6 @@ function Expiration_date() {
           render={({
             field: { onChange, value },
             fieldState: { error },
-            formState: { defaultValues },
           }) => (
             <div className="flex flex-col">
               <ReactSelect
@@ -148,11 +146,6 @@ function Expiration_date() {
           )}
         />
       </div>
-      {expiration_date_error && (
-        <p className="text-sm text-red-500">
-          *{expiration_date_error.root?.message}
-        </p>
-      )}
     </>
   );
 }

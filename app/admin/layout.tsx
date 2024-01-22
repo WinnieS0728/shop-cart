@@ -19,7 +19,7 @@ export default async function AdminLayout({
         >
           會員資料
         </Link>
-        {session?.user?.role === "admin" && (
+        {session?.token.role === "admin" && (
           <>
             <Link
               className="rounded-xl bg-yellow-500 px-4 py-2"
