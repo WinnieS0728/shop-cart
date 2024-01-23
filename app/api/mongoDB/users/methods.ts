@@ -1,5 +1,5 @@
-import { password_schema } from "@/app/admin/user/updatePassword/page";
-import { signUp_schema, user_schema } from "@/libs/mongoDB/schemas/user";
+
+import { password_schema, signUp_schema, user_schema } from "@/libs/mongoDB/schemas/user";
 import { queryClient } from "@/providers/react query";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";

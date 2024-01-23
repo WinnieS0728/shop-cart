@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createTRPCReact } from "@trpc/react-query";
 import { ReactNode, useState } from "react";
 import { httpBatchLink } from "@trpc/client";
-import superjson from "superjson";
+import { transformer } from "@/libs/utils/data transformer";
 
 export const trpc = createTRPCReact<AppRouter>({});
 
@@ -29,7 +29,7 @@ export default function TrpcProvider({ children }: { children: ReactNode }) {
           },
         }),
       ],
-      transformer: superjson,
+      transformer: transformer,
     }),
   );
   return (

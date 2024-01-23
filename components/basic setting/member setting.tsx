@@ -6,13 +6,11 @@ import { z } from "zod";
 import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { Loading } from "../UI/loading";
-import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
-import { collectionList } from "@/libs/mongoDB/connect mongo";
 import { member_schema } from "@/libs/mongoDB/schemas/basic setting/member";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
+import { trpc } from "@/providers/trpc provider";
 
 const member_formSchema = z.object({
   member: z.array(member_schema).superRefine((value, ctx) => {
@@ -43,28 +41,39 @@ const member_formSchema = z.object({
   }),
 });
 
-export default function MemberSetting() {
-  const {
-    GET: { data: memberSettingData, isPending },
-    POST: { mutateAsync: createMember },
-    PATCH: { mutateAsync: updateMember },
-    DELETE: { mutateAsync: deleteMember },
-  } = useBasicSettingMethods().member;
+interface props {
+  initData: z.infer<typeof member_schema>[];
+}
+
+export default function MemberSetting({ initData }: props) {
+  const { data: memberData, refetch } =
+    trpc.basicSetting.member.getMemberList.useQuery(undefined, {
+      initialData: initData,
+    });
+  const { mutateAsync: createMember } =
+    trpc.basicSetting.member.createMember.useMutation({
+      onSettled() {
+        refetch();
+      },
+    });
+  const { mutateAsync: updateMember } =
+    trpc.basicSetting.member.updateMember.useMutation({
+      onSettled() {
+        refetch();
+      },
+    });
+  const { mutateAsync: deleteMember } =
+    trpc.basicSetting.member.deleteMember.useMutation({
+      onSettled() {
+        refetch();
+      },
+    });
 
   const methods = useForm<z.infer<typeof member_formSchema>>({
     resolver: zodResolver(member_formSchema),
-    defaultValues: memberSettingData
-      ? {
-          member: memberSettingData,
-        }
-      : async () => {
-          const res = await fetch(
-            `/api/mongoDB/basicSetting/${collectionList.members}`,
-          );
-          return {
-            member: await res.json(),
-          };
-        },
+    defaultValues: {
+      member: memberData,
+    },
   });
 
   const {
@@ -79,37 +88,76 @@ export default function MemberSetting() {
   });
 
   async function onSubmit(data: z.infer<typeof member_formSchema>) {
-    if (!memberSettingData) {
+    if (!memberData) {
       return;
     }
-    const shouldDelete = memberSettingData.filter(
+    const shouldDelete = memberData.filter(
       (dataInDB) =>
         !data.member.some((dataInForm) => dataInForm._id === dataInDB._id),
     );
     const shouldUpdate = data.member.filter((dataInform) =>
-      memberSettingData.some((dataInDB) => dataInDB._id === dataInform._id),
+      memberData.some((dataInDB) => dataInDB._id === dataInform._id),
     );
     const shouldCreate = data.member.filter(
       (dataInform) =>
-        !memberSettingData.some((dataInDB) => dataInDB._id === dataInform._id),
+        !memberData.some((dataInDB) => dataInDB._id === dataInform._id),
     );
 
-    const request = new Promise(async (res, rej) => {
+    const request = new Promise(async (resolve, reject) => {
       const isDELETEsuccess = (
-        await Promise.all(shouldDelete.map((data) => deleteMember(data._id)))
-      ).every((res) => res.ok);
+        await Promise.all(
+          shouldDelete.map((data) =>
+            deleteMember(
+              {
+                _id: data._id,
+              },
+              {
+                onError() {
+                  return false;
+                },
+                onSuccess() {
+                  return true;
+                },
+              },
+            ),
+          ),
+        )
+      ).every((res) => res);
 
       const isPATCHsuccess = (
-        await Promise.all(shouldUpdate.map((data) => updateMember(data)))
-      ).every((res) => res.ok);
+        await Promise.all(
+          shouldUpdate.map((data) =>
+            updateMember(data, {
+              onError() {
+                return false;
+              },
+              onSuccess() {
+                return true;
+              },
+            }),
+          ),
+        )
+      ).every((res) => res);
 
       const isPOSTsuccess = (
-        await Promise.all(shouldCreate.map((data) => createMember(data)))
-      ).every((res) => res.ok);
+        await Promise.all(
+          shouldCreate.map((data) =>
+            createMember(data, {
+              onError() {
+                return false;
+              },
+              onSuccess() {
+                return true;
+              },
+            }),
+          ),
+        )
+      ).every((res) => res);
+
       if (!isPOSTsuccess || !isPATCHsuccess || !isDELETEsuccess) {
-        rej(false);
+        reject(false);
       } else {
-        res(true);
+        resolve(true);
       }
     });
 
@@ -128,62 +176,56 @@ export default function MemberSetting() {
           className="flex flex-col gap-2"
           title="會員階級"
         >
-          {isPending ? (
-            <>
-              <Loading.block height={16 * 10} />
-            </>
-          ) : (
-            <>
-              {!fields.length ? (
-                <p className="text-center">尚未建立會員階級</p>
-              ) : (
-                fields.map((field, index) => (
-                  <Fragment key={field.id}>
-                    <div className="flex items-end gap-2">
-                      <Label label="階級名稱" htmlFor={`member.${index}.title`}>
-                        <InputText
-                          name={`member.${index}.title`}
-                          id={`member.${index}.title`}
-                        />
-                      </Label>
-                      <Label
-                        label="階級門檻"
-                        htmlFor={`member.${index}.threshold`}
-                      >
-                        <InputOnlyNumber
-                          name={`member.${index}.threshold`}
-                          id={`member.${index}.threshold`}
-                        />
-                      </Label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          remove(index);
-                        }}
-                        className="circle-icon min-w-10  bg-red-500"
-                      >
-                        <icons.Trash className="text-2xl text-white" />
-                      </button>
-                    </div>
-                  </Fragment>
-                ))
-              )}
-              <button
-                type="button"
-                className="add-new-btn"
-                onClick={() => {
-                  append({
-                    _id: new Types.ObjectId(),
-                    title: "",
-                    threshold: 0,
-                  });
-                }}
-              >
-                + 新增會員階級
-              </button>
-              <InputSubmit value={"儲存"} disabled={isSubmitting} />
-            </>
-          )}
+          <>
+            {!fields.length ? (
+              <p className="text-center">尚未建立會員階級</p>
+            ) : (
+              fields.map((field, index) => (
+                <Fragment key={field.id}>
+                  <div className="flex items-end gap-2">
+                    <Label label="階級名稱" htmlFor={`member.${index}.title`}>
+                      <InputText
+                        name={`member.${index}.title`}
+                        id={`member.${index}.title`}
+                      />
+                    </Label>
+                    <Label
+                      label="階級門檻"
+                      htmlFor={`member.${index}.threshold`}
+                    >
+                      <InputOnlyNumber
+                        name={`member.${index}.threshold`}
+                        id={`member.${index}.threshold`}
+                      />
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        remove(index);
+                      }}
+                      className="circle-icon min-w-10  bg-red-500"
+                    >
+                      <icons.Trash className="text-2xl text-white" />
+                    </button>
+                  </div>
+                </Fragment>
+              ))
+            )}
+            <button
+              type="button"
+              className="add-new-btn"
+              onClick={() => {
+                append({
+                  _id: new Types.ObjectId(),
+                  title: "",
+                  threshold: 0,
+                });
+              }}
+            >
+              + 新增會員階級
+            </button>
+            <InputSubmit value={"儲存"} disabled={isSubmitting} />
+          </>
         </FormContainer>
       </FormProvider>
     </section>

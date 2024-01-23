@@ -6,13 +6,12 @@ import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
 import { toast } from "react-toastify";
 import { Loading } from "../UI/loading";
-import { collectionList } from "@/libs/mongoDB/connect mongo";
 import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
+import { trpc } from "@/providers/trpc provider";
 
 const category_formSchema = z.object({
   categories: z.array(category_schema).superRefine((value, ctx) => {
@@ -31,28 +30,39 @@ const category_formSchema = z.object({
   }),
 });
 
-export default function CategorySetting() {
-  const {
-    GET: { data: categorySettingData, isPending },
-    POST: { mutateAsync: createCategory },
-    PATCH: { mutateAsync: updateCategory },
-    DELETE: { mutateAsync: deleteCategory },
-  } = useBasicSettingMethods().category;
+interface props {
+  initData: z.infer<typeof category_schema>[];
+}
+
+export default function CategorySetting({ initData }: props) {
+  const { data: categoryData, refetch } =
+    trpc.basicSetting.category.getCategoryList.useQuery(undefined, {
+      initialData: initData,
+    });
+  const { mutateAsync: createCategory } =
+    trpc.basicSetting.category.createCategory.useMutation({
+      onSettled() {
+        refetch();
+      },
+    });
+  const { mutateAsync: updateCategory } =
+    trpc.basicSetting.category.updateCategory.useMutation({
+      onSettled() {
+        refetch();
+      },
+    });
+  const { mutateAsync: deleteCategory } =
+    trpc.basicSetting.category.deleteCategory.useMutation({
+      onSettled() {
+        refetch();
+      },
+    });
 
   const methods = useForm<z.infer<typeof category_formSchema>>({
     resolver: zodResolver(category_formSchema),
-    defaultValues: categorySettingData
-      ? {
-          categories: categorySettingData,
-        }
-      : async () => {
-          const res = await fetch(
-            `/api/mongoDB/basicSetting/${collectionList.categories}`,
-          );
-          return {
-            categories: await res.json(),
-          };
-        },
+    defaultValues: {
+      categories: categoryData,
+    },
   });
 
   const {
@@ -68,46 +78,76 @@ export default function CategorySetting() {
 
   async function onSubmit(data: z.infer<typeof category_formSchema>) {
     // console.log(data);
-    const shouldDelete = categorySettingData!.filter(
+    const shouldDelete = categoryData.filter(
       (dataInDB) =>
         !data.categories.some((dataInForm) => dataInForm._id === dataInDB._id),
     );
     const shouldCreate = data.categories.filter(
       (dataInform) =>
-        !categorySettingData?.some(
-          (dataInDB) => dataInDB._id === dataInform._id,
-        ),
+        !categoryData.some((dataInDB) => dataInDB._id === dataInform._id),
     );
-    const shouldUpdate = data.categories.filter(
-      (dataInForm) =>
-        categorySettingData?.some(
-          (dataInDB) => dataInDB._id === dataInForm._id,
-        ),
+    const shouldUpdate = data.categories.filter((dataInForm) =>
+      categoryData.some((dataInDB) => dataInDB._id === dataInForm._id),
     );
 
-    const request = new Promise(async (res, rej) => {
+    const request = new Promise(async (resolve, reject) => {
       const isDeleteSuccess = (
         await Promise.all(
-          shouldDelete.map(async (data) => await deleteCategory(data._id)),
+          shouldDelete.map(
+            async (data) =>
+              await deleteCategory(
+                {
+                  _id: data._id,
+                },
+                {
+                  onError() {
+                    return false;
+                  },
+                  onSuccess() {
+                    return true;
+                  },
+                },
+              ),
+          ),
         )
-      ).every((res) => res.ok);
+      ).every((res) => res);
 
       const isCreateSuccess = (
         await Promise.all(
-          shouldCreate.map(async (data) => await createCategory(data)),
+          shouldCreate.map(
+            async (data) =>
+              await createCategory(data, {
+                onError() {
+                  return false;
+                },
+                onSuccess() {
+                  return true;
+                },
+              }),
+          ),
         )
-      ).every((res) => res.ok);
+      ).every((res) => res);
 
       const isUpdateSuccess = (
         await Promise.all(
-          shouldUpdate.map(async (data) => await updateCategory(data)),
+          shouldUpdate.map(
+            async (data) =>
+              await updateCategory(data, {
+                onError() {
+                  return false;
+                },
+                onSuccess() {
+                  return true;
+                },
+              }),
+          ),
         )
-      ).every((res) => res.ok);
+      ).every((res) => res);
 
       if (!isDeleteSuccess || !isCreateSuccess || !isUpdateSuccess) {
-        rej(false);
+        reject(false);
       } else {
-        res(true);
+        resolve(true);
       }
     });
 
@@ -125,47 +165,41 @@ export default function CategorySetting() {
           className="flex flex-col gap-2"
           title="商品類別"
         >
-          {isPending ? (
-            <>
-              <Loading.block height={16 * 10} />
-            </>
-          ) : (
-            <>
-              {!fields.length ? (
-                <p className="text-center">尚未建立商品類別</p>
-              ) : (
-                fields.map((field, index) => (
-                  <div className="flex items-end gap-2" key={field.id}>
-                    <Label label="類別名稱">
-                      <InputText name={`categories.${index}.title`} />
-                    </Label>
-                    <button
-                      type="button"
-                      className="circle-icon min-w-10  bg-red-500"
-                      onClick={() => {
-                        remove(index);
-                      }}
-                    >
-                      <icons.Trash className="text-2xl text-white" />
-                    </button>
-                  </div>
-                ))
-              )}
-              <button
-                type="button"
-                className="add-new-btn"
-                onClick={() => {
-                  append({
-                    _id: new Types.ObjectId(),
-                    title: "",
-                  });
-                }}
-              >
-                + 新增類別
-              </button>
-              <InputSubmit value={"儲存"} disabled={isSubmitting} />
-            </>
-          )}
+          <>
+            {!fields.length ? (
+              <p className="text-center">尚未建立商品類別</p>
+            ) : (
+              fields.map((field, index) => (
+                <div className="flex items-end gap-2" key={field.id}>
+                  <Label label="類別名稱">
+                    <InputText name={`categories.${index}.title`} />
+                  </Label>
+                  <button
+                    type="button"
+                    className="circle-icon min-w-10  bg-red-500"
+                    onClick={() => {
+                      remove(index);
+                    }}
+                  >
+                    <icons.Trash className="text-2xl text-white" />
+                  </button>
+                </div>
+              ))
+            )}
+            <button
+              type="button"
+              className="add-new-btn"
+              onClick={() => {
+                append({
+                  _id: new Types.ObjectId(),
+                  title: "",
+                });
+              }}
+            >
+              + 新增類別
+            </button>
+            <InputSubmit value={"儲存"} disabled={isSubmitting} />
+          </>
         </FormContainer>
       </FormProvider>
     </section>

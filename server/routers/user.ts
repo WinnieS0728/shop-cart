@@ -85,9 +85,6 @@ export const userRouter = router({
                 })
                 return updateDoc
             } catch (error) {
-                if (error instanceof TRPCError) {
-                    throw error
-                }
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
                     cause: error,
