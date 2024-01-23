@@ -6,20 +6,19 @@ import { Label, InputText, InputPassword, InputSubmit } from "@UI/inputs";
 import { z } from "zod";
 import { signUp_schema } from "@/libs/mongoDB/schemas/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { useUserMethods } from "@/app/api/mongoDB/users/methods";
 import { toast } from "react-toastify";
-import { useEdgeStore } from "@/libs/edgestore";
 import AvatarDropzone from "@/components/users/avatar dropzone";
 import Link from "next/link";
+import { trpc } from "@/providers/trpc provider";
+import { TRPCClientError } from "@trpc/client";
+import { AppRouter } from "@/server/routers";
+import { useImageMethods } from "@/hooks/useImage";
 import { useRouter } from "next/navigation";
 
 export default function SignUp() {
-  const { edgestore } = useEdgeStore();
-  const { push } = useRouter()
-  const {
-    POST: { mutateAsync: createUser },
-  } = useUserMethods();
+  const { mutateAsync: createUser } = trpc.user.createUser.useMutation();
+  const { confirmImage } = useImageMethods('userAvatar')
+  const router = useRouter()
   const methods = useForm<z.infer<typeof signUp_schema>>({
     resolver: zodResolver(signUp_schema),
     defaultValues: {
@@ -27,35 +26,42 @@ export default function SignUp() {
       email: "",
       password: "",
       avatar: {
-        normal: '',
-        thumbnail: ''
+        normal: "",
+        thumbnail: "",
       },
     },
   });
   const { handleSubmit } = methods;
   async function onSubmit(data: z.infer<typeof signUp_schema>) {
-    console.log(data);
+    // console.log(data);
     const request = new Promise(async (resolve, reject) => {
-      const res = await createUser(data);
-      if (!res.ok) {
-        reject(await res.json());
-      } else {
-        await edgestore.userAvatar.confirmUpload({
-          url: data.avatar.normal,
-        });
-        resolve("註冊成功 !");
-      }
+      await createUser(data, {
+        onError(error) {
+          reject(error);
+        },
+        async onSuccess(res) {
+          console.log({res});
+          if (data.avatar.normal) {
+            await confirmImage(data.avatar.normal);
+          }
+          router.replace('./')
+          resolve(res);
+        },
+      });
     });
     toast.promise(request, {
       pending: "處理中...",
       success: {
-        render(props) {
-          return `${props.data}`;
+        render({ data }) {
+          const username = (data as Awaited<ReturnType<typeof createUser>>)
+            .username;
+          return `歡迎加入 ${username}`;
         },
       },
       error: {
-        render(props) {
-          return `${props.data}`;
+        render({ data }) {
+          const message = (data as TRPCClientError<AppRouter>).message;
+          return `${message}`;
         },
       },
     });

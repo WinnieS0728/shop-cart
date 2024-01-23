@@ -1,5 +1,4 @@
 "use client";
-import { useUserMethods } from "@/app/api/mongoDB/users/methods";
 import FormContainer from "@/components/UI/form";
 import {
   InputPassword,
@@ -7,36 +6,23 @@ import {
   InputText,
   Label,
 } from "@/components/UI/inputs";
+import { password_schema } from "@/libs/mongoDB/schemas/user";
 import { trpc } from "@/providers/trpc provider";
+import { AppRouter } from "@/server/routers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Types } from "mongoose";
+import { TRPCClientError } from "@trpc/client";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
 
-export const password_schema = z
-  .object({
-    _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
-    email: z.string().email(),
-    origin_password: z.string().min(1, "請填入舊密碼 !"),
-    new_password: z.string().min(1, "請填入新密碼 !"),
-    confirm_password: z.string().min(1, "請填入新密碼 !"),
-  })
-  .refine(
-    ({ new_password, confirm_password }) => {
-      return new_password === confirm_password;
-    },
-    {
-      message: "確認密碼與新密碼不同 !",
-      path: ["confirm_password"],
-    },
-  );
-
 export default function UpdatePassword() {
-  const { data: session } = useSession();
-  console.log(session);
+  const { data: session } = useSession({
+    required: true,
+  });
+  const router = useRouter();
   const { mutateAsync: updatePassword } =
     trpc.user.updatePassword.useMutation();
   const methods = useForm<z.infer<typeof password_schema>>({
@@ -60,7 +46,8 @@ export default function UpdatePassword() {
         onError(error) {
           reject(error);
         },
-        onSettled(res) {
+        onSuccess(res) {
+          router.push("./");
           resolve(res);
         },
       });
@@ -69,14 +56,11 @@ export default function UpdatePassword() {
       pending: "處理中...",
       error: {
         render({ data }) {
-          return `${data}`;
+          const message = (data as TRPCClientError<AppRouter>).message;
+          return `${message}`;
         },
       },
-      success: {
-        render({ data }) {
-          return `${data}`;
-        },
-      },
+      success: "修改成功 !",
     });
   }
   return (

@@ -16,6 +16,8 @@ import AvatarDropzone from "@/components/users/avatar dropzone";
 import LevelSection from "@/components/users/level";
 import { useImageMethods } from "@/hooks/useImage";
 import { trpc } from "@/providers/trpc provider";
+import { TRPCClientError } from "@trpc/client";
+import { AppRouter } from "@/server/routers";
 
 interface props {
   session: Session;
@@ -78,8 +80,8 @@ export default function UpdateUserForm({ session }: props) {
         onError(error) {
           reject(error);
         },
-        onSettled(res, _, variables) {
-          imageProcess(defaultValues?.avatar?.normal, variables.avatar.normal);
+        async onSuccess(res, variables) {
+          await imageProcess(defaultValues?.avatar?.normal, variables.avatar.normal);
           resolve(res);
         },
       });
@@ -87,7 +89,12 @@ export default function UpdateUserForm({ session }: props) {
 
     toast.promise(request, {
       pending: "更新中...",
-      error: `修改失敗 !`,
+      error: {
+        render({data}) {
+            const message = (data as TRPCClientError<AppRouter>).message
+            return message
+        },
+      },
       success: `修改成功 !`,
     });
   }
