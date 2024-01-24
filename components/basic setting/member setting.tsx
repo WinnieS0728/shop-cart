@@ -11,6 +11,8 @@ import { member_schema } from "@/libs/mongoDB/schemas/basic setting/member";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
 import { trpc } from "@/providers/trpc provider";
+import { uneval } from "devalue";
+import { useSession } from "next-auth/react";
 
 const member_formSchema = z.object({
   member: z.array(member_schema).superRefine((value, ctx) => {
@@ -68,7 +70,6 @@ export default function MemberSetting({ initData }: props) {
         refetch();
       },
     });
-
   const methods = useForm<z.infer<typeof member_formSchema>>({
     resolver: zodResolver(member_formSchema),
     defaultValues: {

@@ -1,15 +1,14 @@
 import { connectToMongo } from '@/libs/mongoDB/connect mongo'
 import { initTRPC } from '@trpc/server'
-import { transformer } from '@/libs/utils/data transformer';
-
+import superjson from 'superjson'
 
 
 const t = initTRPC.context<typeof createContext>().create({
-    transformer: transformer
+    transformer: superjson
 })
 
 export async function createContext() {
-    return { foo: 'bar' }
+    return {}
 }
 
 export const createCaller = t.createCallerFactory

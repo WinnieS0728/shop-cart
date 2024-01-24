@@ -15,7 +15,7 @@ export default async function AdminLayout({
       <nav className="flex items-center justify-center gap-4 p-4">
         <Link
           className="rounded-xl bg-yellow-500 px-4 py-2"
-          href={"/admin/user"}
+          href={"/admin"}
         >
           會員資料
         </Link>
@@ -42,7 +42,7 @@ export default async function AdminLayout({
           </>
         )}
       </nav>
-      {children}
+      <section className="px-8">{children}</section>
     </main>
   );
 }

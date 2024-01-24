@@ -7,18 +7,17 @@ import {
   Label,
 } from "@/components/UI/inputs";
 import { password_schema } from "@/libs/mongoDB/schemas/user";
+import { toastOptions } from "@/libs/toast";
 import { trpc } from "@/providers/trpc provider";
-import { AppRouter } from "@/server/routers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TRPCClientError } from "@trpc/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 import { z } from "zod";
 
-export default function UpdatePassword() {
+export default function UpdatePasswordForm() {
   const { data: session } = useSession({
     required: true,
   });
@@ -39,32 +38,29 @@ export default function UpdatePassword() {
     handleSubmit,
     formState: { defaultValues },
   } = methods;
+
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof password_schema>) {
     // console.log(data);
-    const request = new Promise(async (resolve, reject) => {
-      await updatePassword(data, {
-        onError(error) {
-          reject(error);
-        },
-        onSuccess(res) {
-          router.push("./");
-          resolve(res);
-        },
-      });
-    });
-    toast.promise(request, {
-      pending: "處理中...",
-      error: {
-        render({ data }) {
-          const message = (data as TRPCClientError<AppRouter>).message;
-          return `${message}`;
-        },
+    toastId.current = toast.loading("處理中...");
+    await updatePassword(data, {
+      onError(error) {
+        toast.update(toastId.current, {
+          ...toastOptions("error"),
+          render: error.message,
+        });
       },
-      success: "修改成功 !",
+      onSuccess() {
+        toast.update(toastId.current, {
+          ...toastOptions('success'),
+          render: '修改成功 !'
+        })
+        router.push("./");
+      },
     });
   }
   return (
-    <section className="px-8">
+    <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onSubmit)} title="修改密碼">
           <div className="flex flex-col gap-4">
@@ -88,6 +84,6 @@ export default function UpdatePassword() {
           </div>
         </FormContainer>
       </FormProvider>
-    </section>
+    </>
   );
 }

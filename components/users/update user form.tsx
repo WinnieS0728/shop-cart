@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { ReactNode, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import { user_schema } from "@/libs/mongoDB/schemas/user";
@@ -8,29 +8,33 @@ import { CreditCard } from "@UI/credit card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormContainer from "@UI/form";
 import { signOut } from "next-auth/react";
-import { Session } from "next-auth";
-import { Loading } from "@UI/loading";
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 import AvatarDropzone from "@/components/users/avatar dropzone";
-import LevelSection from "@/components/users/level";
 import { useImageMethods } from "@/hooks/useImage";
 import { trpc } from "@/providers/trpc provider";
-import { TRPCClientError } from "@trpc/client";
-import { AppRouter } from "@/server/routers";
+import { toastOptions } from "@/libs/toast";
 
 interface props {
-  session: Session;
+  email: string;
+  initData: z.infer<typeof user_schema>;
+  levelSection: ReactNode;
 }
 
-export default function UpdateUserForm({ session }: props) {
-  const {
-    data: userData,
-    isPending,
-    refetch: refetchUser,
-  } = trpc.user.getUserByEmail.useQuery({
-    email: session.user?.email || "",
-  });
+export default function UpdateUserForm({
+  email,
+  initData,
+  levelSection,
+}: props) {
+  const { data: userData, refetch: refetchUser } =
+    trpc.user.getUserByEmail.useQuery(
+      {
+        email,
+      },
+      {
+        initialData: initData,
+      },
+    );
   const { mutateAsync: updateUser } = trpc.user.updateUser.useMutation({
     onSettled: () => {
       refetchUser();
@@ -39,63 +43,37 @@ export default function UpdateUserForm({ session }: props) {
 
   const methods = useForm<z.infer<typeof user_schema>>({
     resolver: zodResolver(user_schema),
-    defaultValues: {
-      _id: "",
-      username: "",
-      email: "",
-      password: "",
-      avatar: {
-        normal: "",
-        thumbnail: "",
-      },
-      phone: "",
-      address: "",
-      payment: {
-        cardNumber: "",
-        expiration_date: ["", ""],
-        security_code: "",
-      },
-      consumption: 0,
-      role: "user",
-    },
+    defaultValues: userData,
   });
+
   const {
     handleSubmit,
     formState: { isSubmitting, defaultValues },
-    reset,
   } = methods;
-
-  useEffect(() => {
-    if (userData) {
-      reset(userData);
-    }
-  }, [reset, userData]);
 
   const { imageProcess } = useImageMethods("userAvatar");
 
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof user_schema>) {
     // console.log(data);
-    const request = new Promise(async (resolve, reject) => {
-      await updateUser(data, {
-        onError(error) {
-          reject(error);
-        },
-        async onSuccess(res, variables) {
-          await imageProcess(defaultValues?.avatar?.normal, variables.avatar.normal);
-          resolve(res);
-        },
-      });
-    });
-
-    toast.promise(request, {
-      pending: "更新中...",
-      error: {
-        render({data}) {
-            const message = (data as TRPCClientError<AppRouter>).message
-            return message
-        },
+    toastId.current = toast.loading("更新中...");
+    await updateUser(data, {
+      onError(error) {
+        toast.update(toastId.current, {
+          ...toastOptions("error"),
+          render: error.message,
+        });
       },
-      success: `修改成功 !`,
+      async onSuccess(res, variables) {
+        await imageProcess(
+          defaultValues?.avatar?.normal,
+          variables.avatar.normal,
+        );
+        toast.update(toastId.current, {
+          ...toastOptions,
+          render: "修改成功 !",
+        });
+      },
     });
   }
 
@@ -103,9 +81,7 @@ export default function UpdateUserForm({ session }: props) {
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onSubmit)} title="會員資料修改">
-          {isPending ? (
-            <Loading.block height={16 * 20} />
-          ) : (
+          <>
             <div className="flex flex-col gap-4">
               <fieldset className="flex items-center justify-center gap-8">
                 <AvatarDropzone />
@@ -118,7 +94,7 @@ export default function UpdateUserForm({ session }: props) {
                   </Label>
                   <Label label="密碼" required>
                     <Link
-                      href={"user/updatePassword"}
+                      href={"admin/updatePassword"}
                       className="button inline-block bg-yellow-500"
                     >
                       修改密碼
@@ -138,13 +114,11 @@ export default function UpdateUserForm({ session }: props) {
                 </div>
               </Label>
 
-              <Label label="階級">
-                <LevelSection />
-              </Label>
+              <Label label="會員階級">{levelSection}</Label>
 
               <InputSubmit value="儲存" disabled={isSubmitting} />
             </div>
-          )}
+          </>
         </FormContainer>
         <div className="flex items-center justify-center p-4">
           <button

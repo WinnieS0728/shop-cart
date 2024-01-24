@@ -1,17 +1,18 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useRef } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 import { Loading } from "../UI/loading";
 import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
 import { trpc } from "@/providers/trpc provider";
+import { toastOptions } from "@/libs/toast";
 
 const category_formSchema = z.object({
   categories: z.array(category_schema).superRefine((value, ctx) => {
@@ -39,20 +40,8 @@ export default function CategorySetting({ initData }: props) {
     trpc.basicSetting.category.getCategoryList.useQuery(undefined, {
       initialData: initData,
     });
-  const { mutateAsync: createCategory } =
-    trpc.basicSetting.category.createCategory.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
   const { mutateAsync: updateCategory } =
     trpc.basicSetting.category.updateCategory.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
-  const { mutateAsync: deleteCategory } =
-    trpc.basicSetting.category.deleteCategory.useMutation({
       onSettled() {
         refetch();
       },
@@ -76,85 +65,23 @@ export default function CategorySetting({ initData }: props) {
     name: "categories",
   });
 
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof category_formSchema>) {
     // console.log(data);
-    const shouldDelete = categoryData.filter(
-      (dataInDB) =>
-        !data.categories.some((dataInForm) => dataInForm._id === dataInDB._id),
-    );
-    const shouldCreate = data.categories.filter(
-      (dataInform) =>
-        !categoryData.some((dataInDB) => dataInDB._id === dataInform._id),
-    );
-    const shouldUpdate = data.categories.filter((dataInForm) =>
-      categoryData.some((dataInDB) => dataInDB._id === dataInForm._id),
-    );
-
-    const request = new Promise(async (resolve, reject) => {
-      const isDeleteSuccess = (
-        await Promise.all(
-          shouldDelete.map(
-            async (data) =>
-              await deleteCategory(
-                {
-                  _id: data._id,
-                },
-                {
-                  onError() {
-                    return false;
-                  },
-                  onSuccess() {
-                    return true;
-                  },
-                },
-              ),
-          ),
-        )
-      ).every((res) => res);
-
-      const isCreateSuccess = (
-        await Promise.all(
-          shouldCreate.map(
-            async (data) =>
-              await createCategory(data, {
-                onError() {
-                  return false;
-                },
-                onSuccess() {
-                  return true;
-                },
-              }),
-          ),
-        )
-      ).every((res) => res);
-
-      const isUpdateSuccess = (
-        await Promise.all(
-          shouldUpdate.map(
-            async (data) =>
-              await updateCategory(data, {
-                onError() {
-                  return false;
-                },
-                onSuccess() {
-                  return true;
-                },
-              }),
-          ),
-        )
-      ).every((res) => res);
-
-      if (!isDeleteSuccess || !isCreateSuccess || !isUpdateSuccess) {
-        reject(false);
-      } else {
-        resolve(true);
-      }
-    });
-
-    toast.promise(request, {
-      pending: "儲存中...",
-      success: "儲存成功 !",
-      error: "儲存失敗 !",
+    toastId.current = toast.loading("儲存中...");
+    await updateCategory(data.categories, {
+      onError(error) {
+        toast.update(toastId.current, {
+          ...toastOptions("error"),
+          render: error.message,
+        });
+      },
+      onSuccess() {
+        toast.update(toastId.current, {
+          ...toastOptions("success"),
+          render: "儲存成功 !",
+        });
+      },
     });
   }
   return (

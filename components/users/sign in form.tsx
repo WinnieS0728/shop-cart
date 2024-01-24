@@ -1,20 +1,20 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 import FormContainer from "@UI/form";
 import { FormProvider, useForm } from "react-hook-form";
 import { Label, InputText, InputPassword, InputSubmit } from "@UI/inputs";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
+import { Id, toast } from "react-toastify";
 import HrWithText from "@UI/hr with text";
 import OtherSignInProvider from "@/components/users/3rd party sign in";
 import Link from "next/link";
 import { signIn_schema } from "@/libs/mongoDB/schemas/user";
+import { toastOptions } from "@/libs/toast";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
-  const router = useRouter();
   const methods = useForm<z.infer<typeof signIn_schema>>({
     resolver: zodResolver(signIn_schema),
     defaultValues: {
@@ -23,33 +23,32 @@ export default function SignInForm() {
     },
   });
   const { handleSubmit } = methods;
+  const router = useRouter();
 
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof signIn_schema>) {
     // console.log(data);
-    const request = new Promise(async(resolve,reject) => {
-      const res = await signIn("credentials", {
-        ...data,
-        redirect: false,
+    toastId.current = toast.loading("登入中...");
+    const res = await signIn("credentials", {
+      ...data,
+      redirect: false,
+    });
+    if (res && !res.ok) {
+      toast.update(toastId.current, {
+        ...toastOptions("error"),
+        render: res.error,
       });
-      if (res && !res.ok) {
-        reject(res.error)
-      } else {
-        resolve(true)
-        router.refresh();
-      }
-    })
-    toast.promise(request, {
-      pending: '登入中...',
-      success: '登入成功 !',
-      error: {
-        render({data}) {
-            return `${data}`
-        },
-      }
-    })
+    } else {
+      // router.replace('/admin');
+      toast.update(toastId.current, {
+        ...toastOptions("success"),
+        render: "登入成功 !",
+      });
+      router.replace("/admin");
+    }
   }
   return (
-    <section className="px-8">
+    <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onSubmit)} title="登入">
           <div className="flex flex-col gap-4">
@@ -67,10 +66,10 @@ export default function SignInForm() {
       </FormProvider>
       <div className="flex items-center justify-center gap-4 p-4">
         <p>還沒有帳號嗎 ? </p>
-        <Link className="button bg-yellow-500" href={"user/signUp"}>
+        <Link className="button bg-yellow-500" href={"./signUp"}>
           建立帳號 !
         </Link>
       </div>
-    </section>
+    </>
   );
 }

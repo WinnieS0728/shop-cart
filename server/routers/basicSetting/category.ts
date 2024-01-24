@@ -1,4 +1,4 @@
-import { collectionList } from "@/libs/mongoDB/connect mongo";
+import { collectionList, connectToMongo } from "@/libs/mongoDB/connect mongo";
 import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { basicSettingProcedure, router } from "@/server/trpc";
 import { TRPCError } from "@trpc/server";
@@ -11,9 +11,7 @@ export const categoryRouter = router({
             const { [`${collectionList.categories}`]: DB_category } = ctx.conn.models
 
             try {
-                const categoryList = await DB_category.find().sort({
-                    threshold: 1
-                })
+                const categoryList = await DB_category.find()
                 return categoryList
             } catch (error) {
                 throw new TRPCError({
@@ -24,41 +22,57 @@ export const categoryRouter = router({
                 await ctx.conn.close()
             }
         }),
-    createCategory: basicSettingProcedure
-        .input(category_schema)
-        .output(category_schema)
-        .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.categories}`]: DB_category } = ctx.conn.models
-            try {
-                const category = await DB_category.create(input)
-                return category
-            } catch (error) {
-                throw new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    cause: error
-                })
-            } finally {
-                await ctx.conn.close()
-            }
-        }),
     updateCategory: basicSettingProcedure
-        .input(category_schema)
-        .output(category_schema)
+        .input(z.array(category_schema))
+        .output(z.array(category_schema))
+        .use(({ next }) => {
+            const conn2 = connectToMongo('products')
+
+            return next({
+                ctx: {
+                    conn2
+                }
+            })
+        })
         .mutation(async ({ input, ctx }) => {
             const { [`${collectionList.categories}`]: DB_category } = ctx.conn.models
-
-            const { _id, title } = input
+            const { [`${collectionList.products}`]: DB_product } = ctx.conn2.models
+            const idList = input.map(data => data._id)
 
             try {
-                const updatedDoc = await DB_category.findByIdAndUpdate(_id, {
-                    $set: {
-                        title,
+                await Promise.all(input.map(async (data) => {
+                    return await DB_category.findByIdAndUpdate(data._id, {
+                        $set: data
+                    }, {
+                        runValidators: true,
+                        returnDocument: 'after',
+                        upsert: true,
+                    })
+                }))
+
+                await DB_category.deleteMany({
+                    _id: {
+                        $nin: idList
                     }
                 }, {
-                    runValidators: true,
                     returnDocument: 'after'
                 })
-                return updatedDoc
+
+                await DB_product.updateMany({
+                    categories: {
+                        $elemMatch: {
+                            $nin: idList
+                        }
+                    }
+                }, {
+                    $pull: {
+                        categories: {
+                            $nin: idList
+                        }
+                    }
+                })
+
+                return await DB_category.find()
             } catch (error) {
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
@@ -66,28 +80,7 @@ export const categoryRouter = router({
                 })
             } finally {
                 await ctx.conn.close()
-            }
-        }),
-    deleteCategory: basicSettingProcedure
-        .input(category_schema.pick({
-            _id: true
-        }))
-        .output(z.string())
-        .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.categories}`]: DB_category } = ctx.conn.models
-
-            const { _id } = input
-
-            try {
-                await DB_category.findByIdAndDelete(_id)
-                return 'ok'
-            } catch (error) {
-                throw new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    cause: error
-                })
-            } finally {
-                await ctx.conn.close()
+                await ctx.conn2.close()
             }
         })
 })

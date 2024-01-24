@@ -29,6 +29,9 @@ export const authOptions = {
                         const user = await DB_user.findOne({
                             email: { $eq: email }
                         })
+                        if (!user) {
+                            throw new Error('查無此用戶 !')
+                        }
                         const pass = await bcrypt.compare(password, user?.password)
                         if (!pass) {
                             throw new Error('密碼錯誤 !')
@@ -92,7 +95,7 @@ export const authOptions = {
         },
     },
     pages: {
-        signIn: '/admin/user'
+        signIn: '/admin/signIn'
     }
 
 } satisfies NextAuthOptions

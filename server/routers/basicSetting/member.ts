@@ -1,5 +1,6 @@
 import { collectionList } from "@/libs/mongoDB/connect mongo";
 import { member_schema } from "@/libs/mongoDB/schemas/basic setting/member";
+import { user_schema } from "@/libs/mongoDB/schemas/user";
 import { basicSettingProcedure, router } from "@/server/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -15,6 +16,44 @@ export const memberRouter = router({
                     threshold: 1
                 })
                 return memberList
+            } catch (error) {
+                throw new TRPCError({
+                    code: 'INTERNAL_SERVER_ERROR',
+                    cause: error
+                })
+            } finally {
+                await ctx.conn.close()
+            }
+        }),
+    getLevel: basicSettingProcedure
+        .input(user_schema.pick({
+            consumption: true
+        }))
+        .output(z.object({
+            nowLevel: member_schema,
+            nextLevel: member_schema
+        }))
+        .query(async ({ input, ctx }) => {
+            const { [`${collectionList.members}`]: DB_member } = ctx.conn.models
+            const { consumption } = input
+            try {
+                const nowLevel = await DB_member.findOne({
+                    threshold: {
+                        $lte: consumption
+                    }
+                }).sort({
+                    threshold: -1
+                }).limit(1)
+                const nextLevel = await DB_member.findOne({
+                    threshold: {
+                        $gt: consumption
+                    }
+                }).sort({ threshold: 1 }).limit(1)
+
+                return {
+                    nowLevel,
+                    nextLevel
+                }
             } catch (error) {
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',

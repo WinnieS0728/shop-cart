@@ -1,72 +1,36 @@
-import { useQuery } from "@tanstack/react-query";
+import { serverCaller } from "@/server/routers";
 import React from "react";
-import { useFormContext } from "react-hook-form";
 
-type level = {
-  title: string;
-  threshold: number;
-};
+interface props {
+  consumption: number;
+}
 
-export default function LevelSection() {
-  const { watch } = useFormContext();
-  const consumption = watch("consumption");
-  const { data: level, isSuccess } = useQuery<{
-    prev: level;
-    next: level;
-  }>({
-    queryKey: [
-      "admin",
-      "basicSetting",
-      "GET",
-      {
-        action: "get level",
-        key: "threshold",
-        value: consumption,
-      },
-    ],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/mongoDB/basicSetting/getMemberLevel?consumption=${
-          consumption ?? 0
-        }`,
-        {
-          method: "GET",
-        },
-      );
-      return await res.json();
-    },
+export default async function LevelSection({ consumption = 0 }: props) {
+  const level = await serverCaller.basicSetting.member.getLevel({
+    consumption,
   });
+
   return (
     <>
-      {isSuccess && (
+      <div className="flex items-center gap-8">
         <>
-          <div className="flex items-center gap-8">
-            <>
-              <p className="flex items-center gap-2 whitespace-nowrap">
-                目前累計消費金額 :{" "}
-                <span className="text-2xl">{consumption ?? 0}</span>
-              </p>
-              <p className="flex items-center justify-center gap-2 whitespace-nowrap">
-                等級 : <span className="text-2xl">{level.prev.title}</span>
-              </p>
-            </>
-          </div>
           <p className="flex items-center gap-2 whitespace-nowrap">
-            <>
-              再消費
-              {isSuccess && (
-                <span className="text-2xl">
-                  {level.next.threshold - (consumption ?? 0)}
-                </span>
-              )}
-              元可升級為{" "}
-              {isSuccess && (
-                <span className="text-2xl">{level.next.title}</span>
-              )}
-            </>
+            目前累計消費金額 : <span className="text-2xl">{consumption}</span>
+          </p>
+          <p className="flex items-center justify-center gap-2 whitespace-nowrap">
+            等級 : <span className="text-2xl">{level?.nowLevel.title}</span>
           </p>
         </>
-      )}
+      </div>
+      <p className="flex items-center gap-2 whitespace-nowrap">
+        <>
+          再消費
+          <span className="text-2xl">
+            {(level?.nextLevel.threshold || 0) - consumption}
+          </span>
+          元可升級為 <span className="text-2xl">{level?.nextLevel.title}</span>
+        </>
+      </p>
     </>
   );
 }

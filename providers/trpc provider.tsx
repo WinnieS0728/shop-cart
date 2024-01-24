@@ -5,8 +5,9 @@ import { createTRPCReact } from "@trpc/react-query";
 import { ReactNode, useState } from "react";
 import { httpBatchLink } from "@trpc/client";
 import { transformer } from "@/libs/utils/data transformer";
+import superjson from "superjson";
 
-export const trpc = createTRPCReact<AppRouter>({});
+export const trpc = createTRPCReact<AppRouter>();
 
 export default function TrpcProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -29,7 +30,7 @@ export default function TrpcProvider({ children }: { children: ReactNode }) {
           },
         }),
       ],
-      transformer: transformer,
+      transformer: superjson,
     }),
   );
   return (
