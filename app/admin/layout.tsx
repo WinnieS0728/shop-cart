@@ -13,10 +13,7 @@ export default async function AdminLayout({
   return (
     <main>
       <nav className="flex items-center justify-center gap-4 p-4">
-        <Link
-          className="rounded-xl bg-yellow-500 px-4 py-2"
-          href={"/admin"}
-        >
+        <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin"}>
           會員資料
         </Link>
         {session?.token.role === "admin" && (

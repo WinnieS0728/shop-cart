@@ -7,7 +7,7 @@ import {
   Label,
 } from "@/components/UI/inputs";
 import { password_schema } from "@/libs/mongoDB/schemas/user";
-import { toastOptions } from "@/libs/toast";
+import { updateToast } from "@/libs/toast";
 import { trpc } from "@/providers/trpc provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
@@ -45,16 +45,14 @@ export default function UpdatePasswordForm() {
     toastId.current = toast.loading("處理中...");
     await updatePassword(data, {
       onError(error) {
-        toast.update(toastId.current, {
-          ...toastOptions("error"),
+        updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
       onSuccess() {
-        toast.update(toastId.current, {
-          ...toastOptions('success'),
-          render: '修改成功 !'
-        })
+        updateToast(toastId.current, "success", {
+          render: "修改成功 !",
+        });
         router.push("./");
       },
     });

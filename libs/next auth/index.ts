@@ -1,4 +1,4 @@
-import { connectToMongo, collectionList } from "@/libs/mongoDB/connect mongo"
+import { connectToMongo } from "@/libs/mongoDB/connect mongo"
 import { NextAuthOptions } from "next-auth"
 import bcrypt from 'bcryptjs'
 
@@ -21,10 +21,8 @@ export const authOptions = {
             async authorize(credentials) {
                 if (credentials) {
                     const { email, password } = credentials
-                    const conn = connectToMongo('users')
-                    const { models: {
-                        [`${collectionList.users}`]: DB_user
-                    } } = conn
+                    const { conn, models: { DB_user } } = connectToMongo('users')
+
                     try {
                         const user = await DB_user.findOne({
                             email: { $eq: email }
@@ -37,10 +35,10 @@ export const authOptions = {
                             throw new Error('密碼錯誤 !')
                         }
                         return {
-                            id: user._id,
+                            id: user._id.toString(),
                             name: user.username,
                             email: user.email,
-                            image: user.avatar,
+                            image: user.avatar.thumbnail,
                             role: user.role
                         }
                     } catch (error) {
@@ -59,8 +57,8 @@ export const authOptions = {
     ],
     callbacks: {
         async signIn({ user }) {
+            const { conn, models: { DB_user } } = connectToMongo('users')
             try {
-                const { models: { [`${collectionList.users}`]: DB_user } } = connectToMongo('users')
                 const isUserExist = !!(await DB_user.exists({
                     email: {
                         $eq: user.email
@@ -77,6 +75,8 @@ export const authOptions = {
             } catch (error) {
                 console.log(error);
                 return false
+            } finally {
+                await conn.close()
             }
         },
         async jwt({ token, account, user }) {

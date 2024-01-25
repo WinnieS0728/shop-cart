@@ -1,15 +1,15 @@
 import { password_schema, signUp_schema, user_schema } from "@/libs/mongoDB/schemas/user";
-import { router, userProcedure } from "../trpc";
-import { collectionList } from "@/libs/mongoDB/connect mongo";
+import { router, userProcedure } from "../../trpc";
 import { TRPCError } from "@trpc/server";
 import bcrypt from 'bcryptjs'
+import { z } from "zod";
 
 export const userRouter = router({
     createUser: userProcedure
         .input(signUp_schema)
         .output(user_schema)
         .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.users}`]: DB_user } = ctx.conn.models
+            const { conn, models: { DB_user } } = ctx.conn
 
             const { username, email, password, avatar } = input
 
@@ -38,7 +38,7 @@ export const userRouter = router({
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     getUserByEmail: userProcedure
@@ -48,7 +48,7 @@ export const userRouter = router({
         .output(user_schema)
         .query(async ({ input, ctx }) => {
             const { email } = input
-            const { [`${collectionList.users}`]: DB_user } = ctx.conn.models
+            const { conn, models: { DB_user } } = ctx.conn
             try {
                 const user = await DB_user.findOne({ email: { $eq: email } })
                 if (!user) {
@@ -67,14 +67,14 @@ export const userRouter = router({
                     cause: error,
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     updateUser: userProcedure
         .input(user_schema)
-        .output(user_schema)
+        .output(z.nullable(user_schema))
         .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.users}`]: DB_user } = ctx.conn.models
+            const { conn, models: { DB_user } } = ctx.conn
 
             try {
                 const updateDoc = await DB_user.findByIdAndUpdate(input._id, {
@@ -90,14 +90,14 @@ export const userRouter = router({
                     cause: error,
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     updatePassword: userProcedure
         .input(password_schema)
         .output(user_schema)
         .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.users}`]: DB_user } = ctx.conn.models
+            const { conn, models: { DB_user } } = ctx.conn
             const { _id, origin_password, new_password } = input
             try {
                 const userData = await DB_user.findById(_id).select('password')
@@ -123,7 +123,7 @@ export const userRouter = router({
                     runValidators: true,
                     returnDocument: 'after'
                 })
-                return updatedDoc
+                return updatedDoc!
             } catch (error) {
                 if (error instanceof TRPCError) {
                     throw error
@@ -133,7 +133,7 @@ export const userRouter = router({
                     cause: error,
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         })
 })

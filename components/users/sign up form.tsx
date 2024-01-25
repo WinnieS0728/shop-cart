@@ -12,7 +12,7 @@ import Link from "next/link";
 import { trpc } from "@/providers/trpc provider";
 import { useImageMethods } from "@/hooks/useImage";
 import { useRouter } from "next/navigation";
-import { toastOptions } from "@/libs/toast";
+import { updateToast } from "@/libs/toast";
 
 export default function SignUpForm() {
   const { mutateAsync: createUser } = trpc.user.createUser.useMutation();
@@ -37,8 +37,7 @@ export default function SignUpForm() {
     toastId.current = toast.loading("處理中...");
     await createUser(data, {
       onError(error) {
-        toast.update(toastId.current, {
-          ...toastOptions("error"),
+        updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
@@ -46,8 +45,7 @@ export default function SignUpForm() {
         if (data.avatar.normal) {
           await confirmImage(data.avatar.normal);
         }
-        toast.update(toastId.current, {
-          ...toastOptions("success"),
+        updateToast(toastId.current, "success", {
           render: `歡迎加入 ${res.username}`,
         });
         router.replace("./");

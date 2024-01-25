@@ -1,4 +1,4 @@
-import { collectionList, connectToMongo } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo } from "@/libs/mongoDB/connect mongo";
 import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { basicSettingProcedure, router } from "@/server/trpc";
 import { TRPCError } from "@trpc/server";
@@ -8,7 +8,7 @@ export const categoryRouter = router({
     getCategoryList: basicSettingProcedure
         .output(z.array(category_schema))
         .query(async ({ ctx }) => {
-            const { [`${collectionList.categories}`]: DB_category } = ctx.conn.models
+            const { conn, models: { DB_category } } = ctx.conn
 
             try {
                 const categoryList = await DB_category.find()
@@ -19,7 +19,7 @@ export const categoryRouter = router({
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     updateCategory: basicSettingProcedure
@@ -35,17 +35,16 @@ export const categoryRouter = router({
             })
         })
         .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.categories}`]: DB_category } = ctx.conn.models
-            const { [`${collectionList.products}`]: DB_product } = ctx.conn2.models
-            const idList = input.map(data => data._id)
+            const { conn: basicSettingConnection, models: { DB_category } } = ctx.conn
+            const { conn: productConnection, models: { DB_product } } = ctx.conn2
+            const idList = input.map(category => category._id)
 
             try {
-                await Promise.all(input.map(async (data) => {
-                    return await DB_category.findByIdAndUpdate(data._id, {
-                        $set: data
+                await Promise.all(input.map(async (category) => {
+                    await DB_category.findByIdAndUpdate(category._id, {
+                        $set: category
                     }, {
                         runValidators: true,
-                        returnDocument: 'after',
                         upsert: true,
                     })
                 }))
@@ -54,8 +53,6 @@ export const categoryRouter = router({
                     _id: {
                         $nin: idList
                     }
-                }, {
-                    returnDocument: 'after'
                 })
 
                 await DB_product.updateMany({
@@ -72,15 +69,15 @@ export const categoryRouter = router({
                     }
                 })
 
-                return await DB_category.find()
+                return await DB_category.find().lean()
             } catch (error) {
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
-                await ctx.conn2.close()
+                await basicSettingConnection.close()
+                await productConnection.close()
             }
         })
 })

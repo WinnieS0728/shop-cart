@@ -11,7 +11,7 @@ import HrWithText from "@UI/hr with text";
 import OtherSignInProvider from "@/components/users/3rd party sign in";
 import Link from "next/link";
 import { signIn_schema } from "@/libs/mongoDB/schemas/user";
-import { toastOptions } from "@/libs/toast";
+import { updateToast } from "@/libs/toast";
 import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
@@ -34,14 +34,11 @@ export default function SignInForm() {
       redirect: false,
     });
     if (res && !res.ok) {
-      toast.update(toastId.current, {
-        ...toastOptions("error"),
+      updateToast(toastId.current, "error", {
         render: res.error,
       });
     } else {
-      // router.replace('/admin');
-      toast.update(toastId.current, {
-        ...toastOptions("success"),
+      updateToast(toastId.current, "success", {
         render: "登入成功 !",
       });
       router.replace("/admin");

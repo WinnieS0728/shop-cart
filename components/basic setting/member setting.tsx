@@ -1,18 +1,19 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { Fragment } from "react";
+import React, { Fragment, useRef } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 import { member_schema } from "@/libs/mongoDB/schemas/basic setting/member";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
 import { trpc } from "@/providers/trpc provider";
 import { uneval } from "devalue";
 import { useSession } from "next-auth/react";
+import { updateToast } from "@/libs/toast";
 
 const member_formSchema = z.object({
   member: z.array(member_schema).superRefine((value, ctx) => {
@@ -52,20 +53,8 @@ export default function MemberSetting({ initData }: props) {
     trpc.basicSetting.member.getMemberList.useQuery(undefined, {
       initialData: initData,
     });
-  const { mutateAsync: createMember } =
-    trpc.basicSetting.member.createMember.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
   const { mutateAsync: updateMember } =
     trpc.basicSetting.member.updateMember.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
-  const { mutateAsync: deleteMember } =
-    trpc.basicSetting.member.deleteMember.useMutation({
       onSettled() {
         refetch();
       },
@@ -88,84 +77,21 @@ export default function MemberSetting({ initData }: props) {
     name: "member",
   });
 
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof member_formSchema>) {
-    if (!memberData) {
-      return;
-    }
-    const shouldDelete = memberData.filter(
-      (dataInDB) =>
-        !data.member.some((dataInForm) => dataInForm._id === dataInDB._id),
-    );
-    const shouldUpdate = data.member.filter((dataInform) =>
-      memberData.some((dataInDB) => dataInDB._id === dataInform._id),
-    );
-    const shouldCreate = data.member.filter(
-      (dataInform) =>
-        !memberData.some((dataInDB) => dataInDB._id === dataInform._id),
-    );
-
-    const request = new Promise(async (resolve, reject) => {
-      const isDELETEsuccess = (
-        await Promise.all(
-          shouldDelete.map((data) =>
-            deleteMember(
-              {
-                _id: data._id,
-              },
-              {
-                onError() {
-                  return false;
-                },
-                onSuccess() {
-                  return true;
-                },
-              },
-            ),
-          ),
-        )
-      ).every((res) => res);
-
-      const isPATCHsuccess = (
-        await Promise.all(
-          shouldUpdate.map((data) =>
-            updateMember(data, {
-              onError() {
-                return false;
-              },
-              onSuccess() {
-                return true;
-              },
-            }),
-          ),
-        )
-      ).every((res) => res);
-
-      const isPOSTsuccess = (
-        await Promise.all(
-          shouldCreate.map((data) =>
-            createMember(data, {
-              onError() {
-                return false;
-              },
-              onSuccess() {
-                return true;
-              },
-            }),
-          ),
-        )
-      ).every((res) => res);
-
-      if (!isPOSTsuccess || !isPATCHsuccess || !isDELETEsuccess) {
-        reject(false);
-      } else {
-        resolve(true);
-      }
-    });
-
-    toast.promise(request, {
-      pending: "儲存中...",
-      success: "儲存成功 !",
-      error: "儲存失敗 !",
+    console.log(data);
+    toastId.current = toast.loading("儲存中...");
+    await updateMember(data.member, {
+      onError(error) {
+        updateToast(toastId.current, "error", {
+          render: error.message,
+        });
+      },
+      onSuccess() {
+        updateToast(toastId.current, "success", {
+          render: "儲存成功 !",
+        });
+      },
     });
   }
 

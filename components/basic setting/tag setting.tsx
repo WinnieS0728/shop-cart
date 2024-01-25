@@ -1,16 +1,17 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useRef } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { InputSubmit, InputText, Label } from "@UI/inputs";
 import * as icons from "@icons";
 import FormContainer from "@UI/form";
 import { tag_schema } from "@/libs/mongoDB/schemas/basic setting/tag";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
 import { trpc } from "@/providers/trpc provider";
+import { updateToast } from "@/libs/toast";
 
 const tag_formSchema = z.object({
   tags: z.array(tag_schema).superRefine((value, ctx) => {
@@ -38,20 +39,8 @@ export default function TagsSetting({ initData }: props) {
       initialData: initData,
     },
   );
-  const { mutateAsync: createTag } =
-    trpc.basicSetting.tag.createTag.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
   const { mutateAsync: updateTag } =
     trpc.basicSetting.tag.updateTag.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
-  const { mutateAsync: deleteTag } =
-    trpc.basicSetting.tag.deleteTag.useMutation({
       onSettled() {
         refetch();
       },
@@ -75,79 +64,21 @@ export default function TagsSetting({ initData }: props) {
     name: "tags",
   });
 
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof tag_formSchema>) {
-    const shouldDelete = tagData!.filter(
-      (dataInDB) =>
-        !data.tags.some((dataInForm) => dataInForm._id === dataInDB._id),
-    );
-    const shouldCreate = data.tags.filter(
-      (dataInform) =>
-        !tagData?.some((dataInDB) => dataInDB._id === dataInform._id),
-    );
-    const shouldUpdate = data.tags.filter(
-      (dataInform) =>
-        tagData?.some((dataInDB) => dataInDB._id === dataInform._id),
-    );
-
-    const request = new Promise(async (resolve, reject) => {
-      const isDeleteSuccess = (
-        await Promise.all(
-          shouldDelete.map(async (data) => {
-            deleteTag(
-              {
-                _id: data._id,
-              },
-              {
-                onError() {
-                  return false;
-                },
-                onSuccess() {
-                  return true;
-                },
-              },
-            );
-          }),
-        )
-      ).every((res) => res);
-      const isCreateSuccess = (
-        await Promise.all(
-          shouldCreate.map((data) => {
-            createTag(data, {
-              onError() {
-                return false;
-              },
-              onSuccess() {
-                return true;
-              },
-            });
-          }),
-        )
-      ).every((res) => res);
-      const isUpdateSuccess = (
-        await Promise.all(
-          shouldUpdate.map((data) => {
-            updateTag(data, {
-              onError() {
-                return false;
-              },
-              onSuccess() {
-                return true;
-              },
-            });
-          }),
-        )
-      ).every((res) => res);
-      if (!isDeleteSuccess || !isCreateSuccess || !isUpdateSuccess) {
-        reject(false);
-      } else {
-        resolve(true);
-      }
-    });
-
-    toast.promise(request, {
-      pending: "儲存中...",
-      success: "儲存成功 !",
-      error: "儲存失敗 !",
+    // console.log(data);
+    toastId.current = toast.loading("儲存中...");
+    await updateTag(data.tags, {
+      onError(error) {
+        updateToast(toastId.current, "error", {
+          render: error.message,
+        });
+      },
+      onSuccess() {
+        updateToast(toastId.current, "success", {
+          render: "儲存成功 !",
+        });
+      },
     });
   }
   return (

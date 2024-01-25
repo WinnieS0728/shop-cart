@@ -1,4 +1,4 @@
-import { collectionList } from "@/libs/mongoDB/connect mongo";
+import { connectToMongo } from "@/libs/mongoDB/connect mongo";
 import { tag_schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { basicSettingProcedure, router } from "@/server/trpc";
 import { TRPCError } from "@trpc/server";
@@ -8,7 +8,7 @@ export const tagRouter = router({
     getTagList: basicSettingProcedure
         .output(z.array(tag_schema))
         .query(async ({ ctx }) => {
-            const { [`${collectionList.tags}`]: DB_tag } = ctx.conn.models
+            const { conn, models: { DB_tag } } = ctx.conn
 
             try {
                 const categoryList = await DB_tag.find()
@@ -19,73 +19,65 @@ export const tagRouter = router({
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
-            }
-        }),
-    createTag: basicSettingProcedure
-        .input(tag_schema)
-        .output(tag_schema)
-        .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.tags}`]: DB_tag } = ctx.conn.models
-            try {
-                const category = await DB_tag.create(input)
-                return category
-            } catch (error) {
-                throw new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    cause: error
-                })
-            } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     updateTag: basicSettingProcedure
-        .input(tag_schema)
-        .output(tag_schema)
+        .input(z.array(tag_schema))
+        .output(z.array(tag_schema))
+        .use(({ next }) => {
+            const conn2 = connectToMongo('products')
+
+            return next({
+                ctx: {
+                    conn2
+                }
+            })
+        })
         .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.tags}`]: DB_tag } = ctx.conn.models
+            const { conn: basicSettingConnection, models: { DB_tag } } = ctx.conn
+            const { conn: productConnection, models: { DB_product } } = ctx.conn2
 
-            const { _id, title } = input
-
+            const idList = input.map(tag => tag._id)
             try {
-                const updatedDoc = await DB_tag.findByIdAndUpdate(_id, {
-                    $set: {
-                        title,
+                await Promise.all(input.map(async (tag) => {
+                    await DB_tag.findByIdAndUpdate(tag._id, {
+                        $set: tag
+                    }, {
+                        runValidators: true,
+                        upsert: true
+                    })
+                }))
+
+                await DB_tag.deleteMany({
+                    _id: {
+                        $nin: idList
+                    }
+                })
+
+                await DB_product.updateMany({
+                    tags: {
+                        $elemMatch: {
+                            $nin: idList
+                        }
                     }
                 }, {
-                    runValidators: true,
-                    returnDocument: 'after'
+                    $pull: {
+                        tags: {
+                            $nin: idList
+                        }
+                    }
                 })
-                return updatedDoc
+
+                return await DB_tag.find().lean()
             } catch (error) {
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
+                await basicSettingConnection.close()
+                await productConnection.close()
             }
         }),
-    deleteTag: basicSettingProcedure
-        .input(tag_schema.pick({
-            _id: true
-        }))
-        .output(z.string())
-        .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.tags}`]: DB_tag } = ctx.conn.models
-
-            const { _id } = input
-
-            try {
-                await DB_tag.findByIdAndDelete(_id)
-                return 'ok'
-            } catch (error) {
-                throw new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    cause: error
-                })
-            } finally {
-                await ctx.conn.close()
-            }
-        })
 })

@@ -31,4 +31,13 @@ export const basicSettingProcedure = t.procedure.use(({ next }) => {
         }
     })
 })
-export const productProcedure = t.procedure
+export const productProcedure = t.procedure.use(({ next }) => {
+    const conn = connectToMongo('products')
+    const conn2 = connectToMongo('basicSetting')
+    return next({
+        ctx: {
+            conn,
+            conn2
+        }
+    })
+})

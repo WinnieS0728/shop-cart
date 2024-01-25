@@ -12,7 +12,7 @@ import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { findRepeat } from "@/libs/utils/find repeat";
 import { Types } from "mongoose";
 import { trpc } from "@/providers/trpc provider";
-import { toastOptions } from "@/libs/toast";
+import { updateToast } from "@/libs/toast";
 
 const category_formSchema = z.object({
   categories: z.array(category_schema).superRefine((value, ctx) => {
@@ -71,14 +71,12 @@ export default function CategorySetting({ initData }: props) {
     toastId.current = toast.loading("儲存中...");
     await updateCategory(data.categories, {
       onError(error) {
-        toast.update(toastId.current, {
-          ...toastOptions("error"),
+        updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
       onSuccess() {
-        toast.update(toastId.current, {
-          ...toastOptions("success"),
+        updateToast(toastId.current, "success", {
           render: "儲存成功 !",
         });
       },

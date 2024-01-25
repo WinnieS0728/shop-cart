@@ -13,7 +13,7 @@ import { Id, toast } from "react-toastify";
 import AvatarDropzone from "@/components/users/avatar dropzone";
 import { useImageMethods } from "@/hooks/useImage";
 import { trpc } from "@/providers/trpc provider";
-import { toastOptions } from "@/libs/toast";
+import { updateToast } from "@/libs/toast";
 
 interface props {
   email: string;
@@ -59,8 +59,7 @@ export default function UpdateUserForm({
     toastId.current = toast.loading("更新中...");
     await updateUser(data, {
       onError(error) {
-        toast.update(toastId.current, {
-          ...toastOptions("error"),
+        updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
@@ -69,8 +68,7 @@ export default function UpdateUserForm({
           defaultValues?.avatar?.normal,
           variables.avatar.normal,
         );
-        toast.update(toastId.current, {
-          ...toastOptions,
+        updateToast(toastId.current, "success", {
           render: "修改成功 !",
         });
       },

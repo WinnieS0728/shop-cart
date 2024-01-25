@@ -1,26 +1,16 @@
-"use client";
-import { useProductMethods } from "@/app/api/mongoDB/products/methods";
-import React, { Fragment } from "react";
+import React from "react";
 import ProductCard from "./product card";
-import { Loading } from "../UI/loading";
+import { serverCaller } from "@/server/routers";
 
-export default function ProductList() {
-  const {
-    GET: { data: productList, isPending },
-  } = useProductMethods();
+export default async function ProductList() {
+  const productList = await serverCaller.product.getProductList();
 
   return (
     <>
-    <section className="grid grid-rows-[repeat(4,auto)] grid-cols-2 gap-4 p-4">
-        {isPending
-          ? Array.from({ length: 4 }).map((_, index) => (
-              <Fragment key={index}>
-                <Loading.block height={16 * 15} />
-              </Fragment>
-            ))
-          : productList?.map((product) => (
-              <ProductCard key={product._id as string} product={product} />
-            ))}
+      <section className="grid grid-cols-2 grid-rows-[repeat(4,auto)] gap-4 p-4">
+        {productList.map((product) => (
+          <ProductCard key={product._id.toString()} product={product} />
+        ))}
       </section>
     </>
   );

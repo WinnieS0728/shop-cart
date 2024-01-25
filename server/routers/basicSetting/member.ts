@@ -9,7 +9,7 @@ export const memberRouter = router({
     getMemberList: basicSettingProcedure
         .output(z.array(member_schema))
         .query(async ({ ctx }) => {
-            const { [`${collectionList.members}`]: DB_member } = ctx.conn.models
+            const { conn, models: { DB_member } } = ctx.conn
 
             try {
                 const memberList = await DB_member.find().sort({
@@ -22,7 +22,7 @@ export const memberRouter = router({
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     getLevel: basicSettingProcedure
@@ -30,11 +30,11 @@ export const memberRouter = router({
             consumption: true
         }))
         .output(z.object({
-            nowLevel: member_schema,
-            nextLevel: member_schema
+            nowLevel: z.nullable(member_schema),
+            nextLevel: z.nullable(member_schema)
         }))
         .query(async ({ input, ctx }) => {
-            const { [`${collectionList.members}`]: DB_member } = ctx.conn.models
+            const { conn, models: { DB_member } } = ctx.conn
             const { consumption } = input
             try {
                 const nowLevel = await DB_member.findOne({
@@ -60,74 +60,41 @@ export const memberRouter = router({
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
-            }
-        }),
-    createMember: basicSettingProcedure
-        .input(member_schema)
-        .output(member_schema)
-        .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.members}`]: DB_member } = ctx.conn.models
-            try {
-                const member = await DB_member.create(input)
-                return member
-            } catch (error) {
-                throw new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    cause: error
-                })
-            } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
     updateMember: basicSettingProcedure
-        .input(member_schema)
-        .output(member_schema)
+        .input(z.array(member_schema))
+        .output(z.array(member_schema))
         .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.members}`]: DB_member } = ctx.conn.models
+            const { conn, models: { DB_member } } = ctx.conn
 
-            const { _id, title, threshold } = input
+            const idList = input.map(member => member._id)
 
             try {
-                const updatedDoc = await DB_member.findByIdAndUpdate(_id, {
-                    $set: {
-                        title,
-                        threshold
+                await Promise.all(input.map(async (member) => {
+                    await DB_member.findByIdAndUpdate(member._id, {
+                        $set: member
+                    }, {
+                        runValidators: true,
+                        upsert: true
+                    })
+                }))
+
+                await DB_member.deleteMany({
+                    _id: {
+                        $nin: idList
                     }
-                }, {
-                    runValidators: true,
-                    returnDocument: 'after'
                 })
-                return updatedDoc
+
+                return await DB_member.find().lean()
             } catch (error) {
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
                     cause: error
                 })
             } finally {
-                await ctx.conn.close()
+                await conn.close()
             }
         }),
-    deleteMember: basicSettingProcedure
-        .input(member_schema.pick({
-            _id: true
-        }))
-        .output(z.string())
-        .mutation(async ({ input, ctx }) => {
-            const { [`${collectionList.members}`]: DB_member } = ctx.conn.models
-
-            const { _id } = input
-
-            try {
-                await DB_member.findByIdAndDelete(_id)
-                return 'ok'
-            } catch (error) {
-                throw new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    cause: error
-                })
-            } finally {
-                await ctx.conn.close()
-            }
-        })
 })
