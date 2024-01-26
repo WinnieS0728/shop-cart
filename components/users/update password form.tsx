@@ -22,8 +22,7 @@ export default function UpdatePasswordForm() {
     required: true,
   });
   const router = useRouter();
-  const { mutateAsync: updatePassword } =
-    trpc.user.updatePassword.useMutation();
+  const { mutate: updatePassword } = trpc.user.updatePassword.useMutation();
   const methods = useForm<z.infer<typeof password_schema>>({
     resolver: zodResolver(password_schema),
     defaultValues: {
@@ -43,7 +42,7 @@ export default function UpdatePasswordForm() {
   async function onSubmit(data: z.infer<typeof password_schema>) {
     // console.log(data);
     toastId.current = toast.loading("處理中...");
-    await updatePassword(data, {
+    updatePassword(data, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,

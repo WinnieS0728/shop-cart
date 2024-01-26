@@ -11,7 +11,7 @@ export const categoryRouter = router({
             const { conn, models: { DB_category } } = ctx.conn
 
             try {
-                const categoryList = await DB_category.find()
+                const categoryList = await DB_category.find().lean()
                 return categoryList
             } catch (error) {
                 throw new TRPCError({
@@ -46,7 +46,7 @@ export const categoryRouter = router({
                     }, {
                         runValidators: true,
                         upsert: true,
-                    })
+                    }).lean()
                 }))
 
                 await DB_category.deleteMany({

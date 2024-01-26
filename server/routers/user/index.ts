@@ -3,15 +3,17 @@ import { router, userProcedure } from "../../trpc";
 import { TRPCError } from "@trpc/server";
 import bcrypt from 'bcryptjs'
 import { z } from "zod";
+import { imageServerAction } from "@/libs/edgestore/server";
 
 export const userRouter = router({
     createUser: userProcedure
         .input(signUp_schema)
-        .output(user_schema)
+        .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn, models: { DB_user } } = ctx.conn
 
             const { username, email, password, avatar } = input
+            const { confirmImage } = imageServerAction('userAvatar')
 
             try {
                 const isUserExist = await DB_user.exists({ email: { $eq: email } })
@@ -22,13 +24,16 @@ export const userRouter = router({
                     })
                 }
                 const hashedPassword = await bcrypt.hash(password, 10)
-                const updatedDoc = await DB_user.create({
+                await DB_user.create({
                     username,
                     email,
                     password: hashedPassword,
                     avatar
                 })
-                return updatedDoc
+
+                await confirmImage(avatar.normal)
+
+                return 'ok'
             } catch (error) {
                 if (error instanceof TRPCError) {
                     throw error
@@ -50,13 +55,13 @@ export const userRouter = router({
             const { email } = input
             const { conn, models: { DB_user } } = ctx.conn
             try {
-                const user = await DB_user.findOne({ email: { $eq: email } })
-                if (!user) {
+                const user = await DB_user.findOne({ email: { $eq: email } }).lean().orFail(() => {
                     throw new TRPCError({
                         code: 'NOT_FOUND',
-                        message: '該用戶不存在 !'
+                        message: '查無此用戶 !'
                     })
-                }
+                })
+
                 return user
             } catch (error) {
                 if (error instanceof TRPCError) {
@@ -72,19 +77,30 @@ export const userRouter = router({
         }),
     updateUser: userProcedure
         .input(user_schema)
-        .output(z.nullable(user_schema))
+        .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn, models: { DB_user } } = ctx.conn
+            const { imageProcess } = imageServerAction('userAvatar')
 
             try {
-                const updateDoc = await DB_user.findByIdAndUpdate(input._id, {
+                const origin_user = await DB_user.findByIdAndUpdate(input._id, {
                     $set: input
                 }, {
                     runValidators: true,
-                    returnDocument: 'after'
+                }).lean().orFail(() => {
+                    throw new TRPCError({
+                        code: 'NOT_FOUND',
+                        message: "查無此用戶 !"
+                    })
                 })
-                return updateDoc
+
+                await imageProcess(origin_user.avatar.normal, input.avatar.normal)
+
+                return 'ok'
             } catch (error) {
+                if (error instanceof TRPCError) {
+                    throw error
+                }
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
                     cause: error,
@@ -95,35 +111,39 @@ export const userRouter = router({
         }),
     updatePassword: userProcedure
         .input(password_schema)
-        .output(user_schema)
+        .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn, models: { DB_user } } = ctx.conn
             const { _id, origin_password, new_password } = input
             try {
-                const userData = await DB_user.findById(_id).select('password')
-                if (!userData) {
+                const userData = await DB_user.findById(_id).select('password').lean().orFail(() => {
                     throw new TRPCError({
                         code: 'NOT_FOUND',
-                        message: '查無使用者'
+                        message: '查無此用戶 !'
                     })
-                }
+                })
                 const passwordPass = await bcrypt.compare(origin_password, userData.password)
                 if (!passwordPass) {
                     throw new TRPCError({
-                        code: 'BAD_REQUEST',
-                        message: '密碼輸入錯誤'
+                        code: 'UNAUTHORIZED',
+                        message: '舊密碼輸入錯誤'
                     })
                 }
                 const newPassword = await bcrypt.hash(new_password, 10)
-                const updatedDoc = await DB_user.findByIdAndUpdate(_id, {
+                await DB_user.findByIdAndUpdate(_id, {
                     $set: {
                         password: newPassword
                     }
                 }, {
                     runValidators: true,
-                    returnDocument: 'after'
+                }).lean().orFail(() => {
+                    throw new TRPCError({
+                        code: 'NOT_FOUND',
+                        message: '查無此用戶 !'
+                    })
                 })
-                return updatedDoc!
+
+                return 'ok'
             } catch (error) {
                 if (error instanceof TRPCError) {
                     throw error

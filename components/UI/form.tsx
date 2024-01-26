@@ -10,7 +10,10 @@ export default function FormContainer({
   return (
     <form
       {...props}
-      className={cn("rounded-md border-2 border-yellow-500 p-4", className)}
+      className={cn(
+        "rounded-md border-2 border-yellow-500 px-4 py-8",
+        className,
+      )}
     >
       {title && <h3 className="mb-4 text-xl">{title}</h3>}
       {children}

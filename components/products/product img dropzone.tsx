@@ -1,5 +1,5 @@
 "use client";
-import { useEdgeStore } from "@/libs/edgestore";
+import { useEdgeStore } from "@/libs/edgestore/client";
 import { cn } from "@/libs/utils/cn";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
@@ -7,6 +7,7 @@ import { useDropzone } from "react-dropzone";
 import { useController, useFormContext } from "react-hook-form";
 import { ProgressBar } from "../UI/progress bar";
 import * as icons from "@icons";
+import { useImageMethods } from "@/hooks/useImage";
 
 export default function ProductImgDropzone() {
   const [objectUrl, setObjectUrl] = useState<string>("");
@@ -21,6 +22,7 @@ export default function ProductImgDropzone() {
   });
 
   const { edgestore } = useEdgeStore();
+  const { deleteImage } = useImageMethods("productImage");
 
   async function uploadImage(file: File) {
     const res = await edgestore.productImage.upload({
@@ -35,11 +37,12 @@ export default function ProductImgDropzone() {
     return res;
   }
 
-  async function deleteImage() {
+  async function cancelImage() {
     onChange({
       normal: "",
       thumbnail: "",
     });
+    await deleteImage(value.normal);
   }
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
@@ -76,7 +79,7 @@ export default function ProductImgDropzone() {
     <div className="relative">
       <div
         className={cn(
-          "flex aspect-square w-60 cursor-pointer items-center justify-center gap-2 rounded-md border p-8",
+          "flex aspect-square w-80 cursor-pointer items-center justify-center gap-2 rounded-md border p-8",
           {
             "border-red-500": isDragReject,
             "border-green-500": isDragAccept,
@@ -103,7 +106,7 @@ export default function ProductImgDropzone() {
           <p className="whitespace-nowrap">{text}</p>
         )}
       </div>
-      {progress ? (
+      {progress || !!objectUrl ? (
         <ProgressBar progress={progress} />
       ) : (
         <ul className="text-center text-sm">
@@ -116,8 +119,8 @@ export default function ProductImgDropzone() {
         className="absolute -right-4 -top-4 flex aspect-square w-8 items-center justify-center rounded-full bg-red-500 text-white"
         onClick={() => {
           setProgress(0);
-          setObjectUrl('')
-          deleteImage();
+          setObjectUrl("");
+          cancelImage();
         }}
       >
         <icons.Close className="text-xl" />

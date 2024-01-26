@@ -7,8 +7,13 @@ import { useDropzone } from "react-dropzone";
 import { useController, useFormContext } from "react-hook-form";
 import { ProgressBar } from "../UI/progress bar";
 import * as icons from "@icons";
+import { useImageMethods } from "@/hooks/useImage";
 
-export default function AvatarDropzone() {
+interface props {
+  imageFolder: keyof ReturnType<typeof useEdgeStore>["edgestore"];
+}
+
+export default function ImgDropzone({ imageFolder }: props) {
   const [objectUrl, setObjectUrl] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
 
@@ -17,13 +22,13 @@ export default function AvatarDropzone() {
     field: { onChange, value },
   } = useController({
     control,
-    name: "avatar",
+    name: imageFolder === "userAvatar" ? "avatar" : "imageUrl",
   });
 
   const { edgestore } = useEdgeStore();
 
   async function uploadImage(file: File) {
-    const res = await edgestore.userAvatar.upload({
+    const res = await edgestore[`${imageFolder}`].upload({
       file,
       onProgressChange: (progress) => {
         setProgress(progress);
@@ -35,7 +40,7 @@ export default function AvatarDropzone() {
     return res;
   }
 
-  async function deleteImage() {
+  async function cancelImage() {
     onChange({
       normal: "",
       thumbnail: "",
@@ -47,7 +52,10 @@ export default function AvatarDropzone() {
       accept: {
         "image/*": [".png", ".jpeg", ".webp", ".svg"],
       },
-      maxSize: 1024 * 1024 * 5, // @ 5MB
+      maxSize:
+        imageFolder === "userAvatar"
+          ? 1024 * 1024 * 5 // @ 5MB
+          : 1024 * 1024 * 10, // @ 10MB
       onDrop: async (fileList) => {
         if (fileList[0]) {
           const objectUrl = URL.createObjectURL(fileList[0]);
@@ -76,21 +84,24 @@ export default function AvatarDropzone() {
     <div className="relative">
       <div
         className={cn(
-          "flex aspect-square w-60 cursor-pointer items-center justify-center gap-2 rounded-full border p-8",
+          "flex aspect-square w-80 cursor-pointer items-center justify-center gap-2 rounded-md border p-8",
           {
             "border-red-500": isDragReject,
             "border-green-500": isDragAccept,
             "border-blue-500": isFocused,
             "p-0": value?.thumbnail || objectUrl,
+            "w-60 rounded-full": imageFolder === "userAvatar",
           },
         )}
         {...getRootProps()}
       >
         <input {...getInputProps()} />
-        {value?.thumbnail || objectUrl ? (
+        {objectUrl || value?.thumbnail ? (
           <Image
             src={objectUrl || value.thumbnail}
-            className="aspect-square w-full rounded-full object-cover"
+            className={cn("aspect-square w-full object-contain", {
+              "rounded-full": imageFolder === "userAvatar",
+            })}
             alt="image"
             width={300}
             height={300}
@@ -103,21 +114,21 @@ export default function AvatarDropzone() {
           <p className="whitespace-nowrap">{text}</p>
         )}
       </div>
-      {progress ? (
+      {progress || !!objectUrl ? (
         <ProgressBar progress={progress} />
       ) : (
         <ul className="text-center text-sm">
           <li>格式 png, jpeg, webp, svg</li>
-          <li>大小 5MB</li>
+          <li>大小 10MB</li>
         </ul>
       )}
       <button
         type="button"
-        className="absolute -right-0 -top-0 flex aspect-square w-8 items-center justify-center rounded-full bg-red-500 text-white"
+        className="absolute -right-4 -top-4 flex aspect-square w-8 items-center justify-center rounded-full bg-red-500 text-white"
         onClick={() => {
           setProgress(0);
           setObjectUrl("");
-          deleteImage();
+          cancelImage();
         }}
       >
         <icons.Close className="text-xl" />

@@ -9,7 +9,6 @@ interface props {
 }
 
 export default function ProductCard({ product }: props) {
-  console.log(product);
   function getSoldScale(soldNumber: number) {
     switch (true) {
       case soldNumber >= 10:
@@ -44,10 +43,10 @@ export default function ProductCard({ product }: props) {
               className="aspect-square w-full border object-contain"
             />
             {!!product.tags.length && (
-              <div className="absolute bottom-0 left-0 flex w-full items-center justify-end gap-1 bg-gray-100/50 p-2">
+              <div className="absolute bottom-0 left-0 flex w-full flex-wrap-reverse items-center justify-end gap-1 bg-gray-100/50 p-2">
                 {product.tags.map((tag) => (
                   <span
-                    className="rounded-md bg-green-500 px-2 text-white"
+                    className="whitespace-nowrap rounded-md bg-green-500 px-2 text-white"
                     key={tag._id as string}
                   >
                     {tag.title}

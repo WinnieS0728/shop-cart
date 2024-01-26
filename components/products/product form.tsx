@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import React, { useRef } from "react";
+import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { product_schema } from "@/libs/mongoDB/schemas/product";
@@ -8,20 +8,14 @@ import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
 import { ReactSelect } from "@components/UI/select";
 import { Id, toast } from "react-toastify";
 import FormContainer from "../UI/form";
-import ProductImgDropzone from "./product img dropzone";
-import {
-  product_listSchema,
-  useProductMethods,
-} from "@/app/api/mongoDB/products/methods";
-import { useBasicSettingMethods } from "@/app/api/mongoDB/basicSetting/[type]/methods";
-import { useImageMethods } from "@/hooks/useImage";
-import { useSearchParams } from "next/navigation";
+import { product_listSchema } from "@/app/api/mongoDB/products/methods";
 import { Types } from "mongoose";
-import { Loading } from "../UI/loading";
 import { trpc } from "@/providers/trpc provider";
 import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
 import { tag_schema } from "@/libs/mongoDB/schemas/basic setting/tag";
 import { updateToast } from "@/libs/toast";
+import { useRouter } from "next/navigation";
+import ImgDropzone from "../UI/dropzone";
 
 interface props {
   as: "create" | "update";
@@ -36,17 +30,14 @@ export default function ProductForm({
   initCategoryList,
   initTagList,
 }: props) {
-  const {
-    data: product,
-    refetch: refetchProduct,
-    error,
-  } = trpc.product.getProductById.useQuery(
-    {
-      _id: initData._id.toString(),
-    },
-    { initialData: initData },
-  );
-  console.log(error);
+  const { data: product, refetch: refetchProduct } =
+    trpc.product.getProductById.useQuery(
+      {
+        _id: initData._id.toString(),
+      },
+      { initialData: initData, enabled: as === "update" },
+    );
+
   const { data: categoryList } =
     trpc.basicSetting.category.getCategoryList.useQuery(undefined, {
       initialData: initCategoryList,
@@ -57,15 +48,14 @@ export default function ProductForm({
       initialData: initTagList,
     },
   );
-  const { mutateAsync: createProduct } =
-    trpc.product.createProduct.useMutation();
-  const { mutateAsync: updateProduct } = trpc.product.updateProduct.useMutation(
-    {
-      onSettled() {
-        refetchProduct();
-      },
+  const { mutate: createProduct } = trpc.product.createProduct.useMutation();
+  const { mutate: updateProduct } = trpc.product.updateProduct.useMutation({
+    onSettled() {
+      refetchProduct();
     },
-  );
+  });
+  const { mutate: deleteProduct } = trpc.product.deleteProduct.useMutation();
+  const router = useRouter();
 
   const methods = useForm<z.infer<typeof product_schema>>({
     resolver: zodResolver(product_schema),
@@ -95,15 +85,14 @@ export default function ProductForm({
 
   const {
     handleSubmit,
-    watch,
     control,
     formState: { isSubmitting },
   } = methods;
-  const prevImage = useRef<string>("");
 
-  const isProductHasImage = !!watch("imageUrl.normal");
-
-  const { confirmImage, imageProcess } = useImageMethods("productImage");
+  const isProductHasImage = !!useWatch({
+    control,
+    name: "imageUrl.normal",
+  });
 
   const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof product_schema>) {
@@ -114,16 +103,17 @@ export default function ProductForm({
   async function onCreate(data: z.infer<typeof product_schema>) {
     console.log(data);
     toastId.current = toast.loading("建立中...");
-    await createProduct(data, {
+    createProduct(data, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
-      onSuccess() {
+      async onSuccess() {
         updateToast(toastId.current, "success", {
           render: "建立完成 !",
         });
+        router.push("/admin/menu");
       },
     });
   }
@@ -131,17 +121,17 @@ export default function ProductForm({
   async function onUpdate(data: z.infer<typeof product_schema>) {
     console.log(data);
     toastId.current = toast.loading("更新中...");
-    await updateProduct(data, {
+    updateProduct(data, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
       async onSuccess() {
-        await imageProcess(initData.imageUrl.normal, data.imageUrl.normal);
         updateToast(toastId.current, "success", {
           render: "更新成功 !",
         });
+        router.push("/admin/menu");
       },
     });
   }
@@ -151,10 +141,10 @@ export default function ProductForm({
       <FormProvider {...methods}>
         <FormContainer
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-4"
         >
-          <div className="flex items-center gap-8">
-            <ProductImgDropzone />
+          <div className="flex flex-col items-center gap-8 md:flex-row">
+            <ImgDropzone imageFolder="productImage" />
             <div className="flex w-full flex-col gap-2">
               <Label label="產品名稱" required>
                 <InputText name="title" />
@@ -238,9 +228,38 @@ export default function ProductForm({
           </div>
           <InputSubmit
             value={"儲存"}
-            // disabled={isSubmitting || !isProductHasImage}
+            disabled={isSubmitting || !isProductHasImage}
           />
         </FormContainer>
+        <div className="flex items-center justify-center p-4">
+          <button
+            type="button"
+            className="button bg-red-500"
+            onClick={() => {
+              toastId.current = toast.loading("刪除中...");
+              deleteProduct(
+                {
+                  _id: product._id,
+                },
+                {
+                  onError(error) {
+                    updateToast(toastId.current, "error", {
+                      render: error.message,
+                    });
+                  },
+                  async onSuccess() {
+                    updateToast(toastId.current, "success", {
+                      render: "刪除成功 !",
+                    });
+                    router.push("/admin/menu");
+                  },
+                },
+              );
+            }}
+          >
+            刪除此商品
+          </button>
+        </div>
       </FormProvider>
     </>
   );

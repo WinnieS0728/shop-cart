@@ -40,7 +40,7 @@ export default function CategorySetting({ initData }: props) {
     trpc.basicSetting.category.getCategoryList.useQuery(undefined, {
       initialData: initData,
     });
-  const { mutateAsync: updateCategory } =
+  const { mutate: updateCategory } =
     trpc.basicSetting.category.updateCategory.useMutation({
       onSettled() {
         refetch();
@@ -69,7 +69,7 @@ export default function CategorySetting({ initData }: props) {
   async function onSubmit(data: z.infer<typeof category_formSchema>) {
     // console.log(data);
     toastId.current = toast.loading("儲存中...");
-    await updateCategory(data.categories, {
+    updateCategory(data.categories, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,

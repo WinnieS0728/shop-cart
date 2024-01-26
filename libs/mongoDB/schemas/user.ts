@@ -77,22 +77,22 @@ export const signUp_schema = user_schema.pick({
 })
 
 export const password_schema = z
-  .object({
-    _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
-    email: z.string().email(),
-    origin_password: z.string().min(1, "請填入舊密碼 !"),
-    new_password: z.string().min(1, "請填入新密碼 !"),
-    confirm_password: z.string().min(1, "請填入新密碼 !"),
-  })
-  .refine(
-    ({ new_password, confirm_password }) => {
-      return new_password === confirm_password;
-    },
-    {
-      message: "確認密碼與新密碼不同 !",
-      path: ["confirm_password"],
-    },
-  );
+    .object({
+        _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
+        email: z.string().email(),
+        origin_password: z.string().min(1, "請填入舊密碼 !"),
+        new_password: z.string().min(1, "請填入新密碼 !"),
+        confirm_password: z.string().min(1, "請填入新密碼 !"),
+    })
+    .refine(
+        ({ new_password, confirm_password }) => {
+            return new_password === confirm_password;
+        },
+        {
+            message: "確認密碼與新密碼不同 !",
+            path: ["confirm_password"],
+        },
+    );
 
 const DB_user_schema = new Schema<z.infer<typeof user_schema>>({
     username: {
@@ -105,7 +105,7 @@ const DB_user_schema = new Schema<z.infer<typeof user_schema>>({
     },
     password: {
         type: String,
-        default: ''
+        default: 'sign-up-from-google'
     },
     avatar: {
         normal: {

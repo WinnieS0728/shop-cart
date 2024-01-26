@@ -2,12 +2,16 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect } from "react";
 import * as icons from "@icons";
 
-export function ProgressBar({ progress }: { progress: number }) {
+interface props {
+  progress: number;
+}
+
+export function ProgressBar({ progress }: props) {
   const progressValue = useMotionValue(progress);
   useEffect(() => {
     progressValue.set(progress);
   }, [progress, progressValue]);
-  const progressPercent = useTransform(progressValue, [0, 100], [0, 1]);
+  const progressPercent = useTransform(progressValue, [0, 100], [0.05, 1]);
 
   return (
     <div className="flex items-center justify-center gap-2 rounded-md p-2">

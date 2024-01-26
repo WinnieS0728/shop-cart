@@ -1,4 +1,6 @@
 import { product_listSchema } from "@/app/api/mongoDB/products/methods";
+import { edgestoreServer, imageServerAction } from "@/libs/edgestore/server";
+import { connectToMongo } from "@/libs/mongoDB/connect mongo";
 import { product_schema } from "@/libs/mongoDB/schemas/product";
 import { productProcedure, router } from "@/server/trpc";
 import { TRPCError } from "@trpc/server";
@@ -7,6 +9,15 @@ import { z } from "zod";
 export const productRouter = router({
     getProductList: productProcedure
         .output(z.array(product_listSchema))
+        .use(({ next }) => {
+            const conn2 = connectToMongo('basicSetting')
+
+            return next({
+                ctx: {
+                    conn2
+                }
+            })
+        })
         .query(async ({ ctx }) => {
             const { conn: productConnection, models: { DB_product } } = ctx.conn
             const { conn: basicSettingConnection, models: {
@@ -37,6 +48,15 @@ export const productRouter = router({
             _id: true
         }))
         .output(product_listSchema)
+        .use(({ next }) => {
+            const conn2 = connectToMongo('basicSetting')
+
+            return next({
+                ctx: {
+                    conn2
+                }
+            })
+        })
         .query(async ({ input, ctx }) => {
             const { conn: productConnection, models: { DB_product } } = ctx.conn
             const { conn: basicSettingConnection, models: {
@@ -52,7 +72,7 @@ export const productRouter = router({
                     .lean()
                     .orFail(() => {
                         throw new TRPCError({
-                            code: 'BAD_REQUEST',
+                            code: 'NOT_FOUND',
                             message: '查無此商品 !'
                         })
                     })
@@ -73,47 +93,49 @@ export const productRouter = router({
         }),
     createProduct: productProcedure
         .input(product_schema)
-        .output(z.any())
+        .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn: productConnection, models: { DB_product } } = ctx.conn
-            const { conn: basicSettingConnection, models: { DB_category, DB_tag } } = ctx.conn2
+            const { confirmImage } = imageServerAction('productImage')
+
             try {
-                const product = await DB_product.create(input)
+                await DB_product.create(input)
 
-                console.log(product);
+                await confirmImage(input.imageUrl.normal)
 
-                return product
+                return 'ok'
             } catch (error) {
-
+                throw new TRPCError({
+                    code: 'INTERNAL_SERVER_ERROR',
+                    cause: error
+                })
             } finally {
                 await productConnection.close()
-                await basicSettingConnection.close()
             }
         }),
     updateProduct: productProcedure
         .input(product_schema)
-        .output(product_listSchema)
+        .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn: productConnection, models: { DB_product } } = ctx.conn
-            const { conn: basicSettingConnection, models: { DB_category, DB_tag } } = ctx.conn2
+            const { imageProcess } = imageServerAction('productImage')
 
             try {
-                const updatedProduct = await DB_product.findByIdAndUpdate(input._id, {
+                const origin_product = await DB_product.findByIdAndUpdate(input._id, {
                     $set: input
                 }, {
                     runValidators: true,
-                    returnDocument: 'after',
                 })
-                    .populate<Pick<z.infer<typeof product_listSchema>, 'categories'>>('categories', 'title', DB_category)
-                    .populate<Pick<z.infer<typeof product_listSchema>, 'tags'>>('tags', 'title', DB_tag)
                     .lean().orFail(() => {
                         throw new TRPCError({
-                            code: 'BAD_REQUEST',
+                            code: 'NOT_FOUND',
                             message: '查無此商品 !'
                         })
                     })
 
-                return updatedProduct
+                await imageProcess(origin_product.imageUrl.normal, input.imageUrl.normal)
+
+                return 'ok'
             } catch (error) {
                 if (error instanceof TRPCError) {
                     throw error
@@ -124,7 +146,38 @@ export const productRouter = router({
                 })
             } finally {
                 await productConnection.close()
-                await basicSettingConnection.close()
+            }
+        }),
+    deleteProduct: productProcedure
+        .input(product_schema.pick({
+            _id: true
+        }))
+        .output(z.string())
+        .mutation(async ({ input, ctx }) => {
+            const { conn, models: { DB_product } } = ctx.conn
+            const { deleteImage } = imageServerAction('productImage')
+
+            try {
+                const origin_product = await DB_product.findByIdAndDelete(input._id).lean().orFail(() => {
+                    throw new TRPCError({
+                        code: 'NOT_FOUND',
+                        message: '查無此商品 !'
+                    })
+                })
+
+                await deleteImage(origin_product.imageUrl.normal)
+
+                return 'ok'
+            } catch (error) {
+                if (error instanceof TRPCError) {
+                    throw error
+                }
+                throw new TRPCError({
+                    code: 'INTERNAL_SERVER_ERROR',
+                    cause: error
+                })
+            } finally {
+                await conn.close()
             }
         })
 })

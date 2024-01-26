@@ -39,12 +39,11 @@ export default function TagsSetting({ initData }: props) {
       initialData: initData,
     },
   );
-  const { mutateAsync: updateTag } =
-    trpc.basicSetting.tag.updateTag.useMutation({
-      onSettled() {
-        refetch();
-      },
-    });
+  const { mutate: updateTag } = trpc.basicSetting.tag.updateTag.useMutation({
+    onSettled() {
+      refetch();
+    },
+  });
 
   const methods = useForm<z.infer<typeof tag_formSchema>>({
     resolver: zodResolver(tag_formSchema),
@@ -68,7 +67,7 @@ export default function TagsSetting({ initData }: props) {
   async function onSubmit(data: z.infer<typeof tag_formSchema>) {
     // console.log(data);
     toastId.current = toast.loading("儲存中...");
-    await updateTag(data.tags, {
+    updateTag(data.tags, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,

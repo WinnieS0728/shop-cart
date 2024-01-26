@@ -68,7 +68,10 @@ export const authOptions = {
                     await DB_user.create({
                         username: user.name,
                         email: user.email,
-                        avatar: user.image,
+                        avatar: {
+                            normal: user.image,
+                            thumbnail: user.image
+                        },
                     })
                 }
                 return true

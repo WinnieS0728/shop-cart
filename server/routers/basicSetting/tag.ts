@@ -11,7 +11,7 @@ export const tagRouter = router({
             const { conn, models: { DB_tag } } = ctx.conn
 
             try {
-                const categoryList = await DB_tag.find()
+                const categoryList = await DB_tag.find().lean()
                 return categoryList
             } catch (error) {
                 throw new TRPCError({
@@ -46,7 +46,7 @@ export const tagRouter = router({
                     }, {
                         runValidators: true,
                         upsert: true
-                    })
+                    }).lean()
                 }))
 
                 await DB_tag.deleteMany({
@@ -67,7 +67,7 @@ export const tagRouter = router({
                             $nin: idList
                         }
                     }
-                })
+                }).lean()
 
                 return await DB_tag.find().lean()
             } catch (error) {

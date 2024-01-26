@@ -10,10 +10,9 @@ import FormContainer from "@UI/form";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Id, toast } from "react-toastify";
-import AvatarDropzone from "@/components/users/avatar dropzone";
-import { useImageMethods } from "@/hooks/useImage";
 import { trpc } from "@/providers/trpc provider";
 import { updateToast } from "@/libs/toast";
+import ImgDropzone from "../UI/dropzone";
 
 interface props {
   email: string;
@@ -35,7 +34,7 @@ export default function UpdateUserForm({
         initialData: initData,
       },
     );
-  const { mutateAsync: updateUser } = trpc.user.updateUser.useMutation({
+  const { mutate: updateUser } = trpc.user.updateUser.useMutation({
     onSettled: () => {
       refetchUser();
     },
@@ -48,26 +47,20 @@ export default function UpdateUserForm({
 
   const {
     handleSubmit,
-    formState: { isSubmitting, defaultValues },
+    formState: { isSubmitting },
   } = methods;
-
-  const { imageProcess } = useImageMethods("userAvatar");
 
   const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof user_schema>) {
     // console.log(data);
     toastId.current = toast.loading("更新中...");
-    await updateUser(data, {
+    updateUser(data, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,
         });
       },
-      async onSuccess(res, variables) {
-        await imageProcess(
-          defaultValues?.avatar?.normal,
-          variables.avatar.normal,
-        );
+      async onSuccess() {
         updateToast(toastId.current, "success", {
           render: "修改成功 !",
         });
@@ -82,7 +75,7 @@ export default function UpdateUserForm({
           <>
             <div className="flex flex-col gap-4">
               <fieldset className="flex items-center justify-center gap-8">
-                <AvatarDropzone />
+                <ImgDropzone imageFolder="userAvatar" />
                 <div className="flex w-full flex-col gap-4">
                   <Label label="姓名" htmlFor="username" required>
                     <InputText name="username" id="username" />

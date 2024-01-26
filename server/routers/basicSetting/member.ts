@@ -14,7 +14,7 @@ export const memberRouter = router({
             try {
                 const memberList = await DB_member.find().sort({
                     threshold: 1
-                })
+                }).lean(0)
                 return memberList
             } catch (error) {
                 throw new TRPCError({
@@ -43,18 +43,27 @@ export const memberRouter = router({
                     }
                 }).sort({
                     threshold: -1
-                }).limit(1)
+                }).limit(1).lean().orFail(() => {
+                    throw new TRPCError({
+                        code: 'NOT_FOUND',
+                        message: '查無目前階級 !'
+                    })
+                })
+
                 const nextLevel = await DB_member.findOne({
                     threshold: {
                         $gt: consumption
                     }
-                }).sort({ threshold: 1 }).limit(1)
+                }).sort({ threshold: 1 }).limit(1).lean()
 
                 return {
                     nowLevel,
                     nextLevel
                 }
             } catch (error) {
+                if (error instanceof TRPCError) {
+                    throw error
+                }
                 throw new TRPCError({
                     code: 'INTERNAL_SERVER_ERROR',
                     cause: error
@@ -78,7 +87,7 @@ export const memberRouter = router({
                     }, {
                         runValidators: true,
                         upsert: true
-                    })
+                    }).lean()
                 }))
 
                 await DB_member.deleteMany({

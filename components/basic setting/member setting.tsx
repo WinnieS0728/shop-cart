@@ -53,7 +53,7 @@ export default function MemberSetting({ initData }: props) {
     trpc.basicSetting.member.getMemberList.useQuery(undefined, {
       initialData: initData,
     });
-  const { mutateAsync: updateMember } =
+  const { mutate: updateMember } =
     trpc.basicSetting.member.updateMember.useMutation({
       onSettled() {
         refetch();
@@ -81,7 +81,7 @@ export default function MemberSetting({ initData }: props) {
   async function onSubmit(data: z.infer<typeof member_formSchema>) {
     console.log(data);
     toastId.current = toast.loading("儲存中...");
-    await updateMember(data.member, {
+    updateMember(data.member, {
       onError(error) {
         updateToast(toastId.current, "error", {
           render: error.message,
