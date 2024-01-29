@@ -1,5 +1,7 @@
 import { Schema, Types } from "mongoose";
 import { z } from "zod";
+import { category_schema } from "./basic setting/category";
+import { tag_schema } from "./basic setting/tag";
 
 export const product_schema = z.object({
     _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
@@ -15,6 +17,12 @@ export const product_schema = z.object({
     }),
     tags: z.array(z.union([z.string(), z.instanceof(Types.ObjectId)]))
 })
+
+const populated_schema = z.object({
+    categories: z.array(category_schema),
+    tags: z.array(tag_schema)
+})
+export const product_listSchema = product_schema.merge(populated_schema)
 
 const DB_product_schema = new Schema<z.infer<typeof product_schema>>({
     title: {

@@ -1,4 +1,4 @@
-import { product_listSchema } from "@/app/api/mongoDB/products/methods";
+import { product_listSchema } from "@/libs/mongoDB/schemas/product";
 import { edgestoreServer, imageServerAction } from "@/libs/edgestore/server";
 import { connectToMongo } from "@/libs/mongoDB/connect mongo";
 import { product_schema } from "@/libs/mongoDB/schemas/product";

@@ -1,5 +1,5 @@
-import { product_listSchema } from "@/app/api/mongoDB/products/methods";
 import ProductForm from "@/components/products/product form";
+import { product_listSchema } from "@/libs/mongoDB/schemas/product";
 import { JSON_serialize } from "@/libs/utils/serialize";
 import { serverCaller } from "@/server/routers";
 import { Types } from "mongoose";

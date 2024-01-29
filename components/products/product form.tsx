@@ -8,7 +8,7 @@ import { Label, InputText, InputOnlyNumber, InputSubmit } from "../UI/inputs";
 import { ReactSelect } from "@components/UI/select";
 import { Id, toast } from "react-toastify";
 import FormContainer from "../UI/form";
-import { product_listSchema } from "@/app/api/mongoDB/products/methods";
+import { product_listSchema } from "@/libs/mongoDB/schemas/product";
 import { Types } from "mongoose";
 import { trpc } from "@/providers/trpc provider";
 import { category_schema } from "@/libs/mongoDB/schemas/basic setting/category";
@@ -61,7 +61,7 @@ export default function ProductForm({
     resolver: zodResolver(product_schema),
     criteriaMode: "all",
     defaultValues:
-      as === "create"
+      as === "create" || !product
         ? {
             _id: new Types.ObjectId(),
             title: "",
@@ -78,8 +78,8 @@ export default function ProductForm({
           }
         : {
             ...product,
-            categories: product?.categories.map((category) => category._id),
-            tags: product?.tags.map((tag) => tag._id),
+            categories: product.categories.map((category) => category._id),
+            tags: product.tags.map((tag) => tag._id),
           },
   });
 

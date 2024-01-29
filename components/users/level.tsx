@@ -22,15 +22,19 @@ export default async function LevelSection({ consumption = 0 }: props) {
           </p>
         </>
       </div>
-      <p className="flex items-center gap-2 whitespace-nowrap">
-        <>
-          再消費
-          <span className="text-2xl">
-            {(level?.nextLevel.threshold || 0) - consumption}
-          </span>
-          元可升級為 <span className="text-2xl">{level?.nextLevel.title}</span>
-        </>
-      </p>
+      {!level.nextLevel ? (
+        <p>已達最高級</p>
+      ) : (
+        <p className="flex items-center gap-2 whitespace-nowrap">
+          <>
+            再消費
+            <span className="text-2xl">
+              {(level?.nextLevel?.threshold || 0) - consumption}
+            </span>
+            元可升級為 <span className="text-2xl">{level.nextLevel.title}</span>
+          </>
+        </p>
+      )}
     </>
   );
 }

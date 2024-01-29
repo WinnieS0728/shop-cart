@@ -42,7 +42,6 @@ export default async function RootLayout({
             <EdgeStoreProvider>
               <MySessionProvider session={session}>
                 <body>
-                  <Header />
                   {children}
                   <ToastContainer
                     position="top-center"

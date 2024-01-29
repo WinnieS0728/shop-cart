@@ -1,14 +1,10 @@
-import { authOptions } from "@/libs/next auth";
-import { getServerSession } from "next-auth";
+"use client";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { ReactNode } from "react";
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const session = await getServerSession(authOptions);
+export default function AminTemplate({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
 
   return (
     <main>

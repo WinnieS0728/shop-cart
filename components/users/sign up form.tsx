@@ -13,6 +13,7 @@ import { useImageMethods } from "@/hooks/useImage";
 import { useRouter } from "next/navigation";
 import { updateToast } from "@/libs/toast";
 import ImgDropzone from "../UI/dropzone";
+import { signIn } from "next-auth/react";
 
 export default function SignUpForm() {
   const { mutate: createUser } = trpc.user.createUser.useMutation();
@@ -41,10 +42,22 @@ export default function SignUpForm() {
         });
       },
       async onSuccess() {
-        updateToast(toastId.current, "success", {
-          render: `歡迎加入 ${data.username}`,
+        const signInReq = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
         });
-        router.push("/admin");
+        if (signInReq && !signInReq.ok) {
+          updateToast(toastId.current, "error", {
+            render: `登入失敗 請重新登入 !`,
+          });
+          router.push("/admin/signIn");
+        } else {
+          updateToast(toastId.current, "success", {
+            render: `歡迎加入 ${data.username}`,
+          });
+          router.push("/admin");
+        }
       },
     });
   }

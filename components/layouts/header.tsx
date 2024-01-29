@@ -1,15 +1,26 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
+import userIcon from "@images/user-icon.png";
+import { useSession } from "next-auth/react";
 
 export default function Header() {
+  const { data: session } = useSession();
   return (
     <header className="sticky top-0 z-10 w-full bg-red-500 p-2">
       <nav className="flex items-center justify-between">
         <Link
           href={"/admin"}
-          className="aspect-square w-12 rounded-full bg-yellow-500"
+          className="aspect-square overflow-hidden rounded-full"
         >
-          avatar
+          <Image
+            src={session?.user?.image || userIcon}
+            alt="user-avatar"
+            width={48}
+            height={48}
+            priority
+          />
         </Link>
         <div className="flex items-center justify-center gap-12">
           <Link href={"/menu"}>menu</Link>

@@ -30,7 +30,7 @@ export const memberRouter = router({
             consumption: true
         }))
         .output(z.object({
-            nowLevel: z.nullable(member_schema),
+            nowLevel: member_schema,
             nextLevel: z.nullable(member_schema)
         }))
         .query(async ({ input, ctx }) => {

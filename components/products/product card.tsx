@@ -1,4 +1,4 @@
-import { product_listSchema } from "@/app/api/mongoDB/products/methods";
+import { product_listSchema } from "@/libs/mongoDB/schemas/product";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
