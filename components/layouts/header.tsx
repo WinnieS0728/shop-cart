@@ -1,9 +1,10 @@
 "use client";
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
 import userIcon from "@images/user-icon.png";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 export default function Header() {
   const { data: session } = useSession();

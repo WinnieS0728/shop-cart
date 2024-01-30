@@ -1,9 +1,9 @@
 import { password_schema, signUp_schema, user_schema } from "@/libs/mongoDB/schemas/user";
-import { router, userProcedure } from "../../trpc";
 import { TRPCError } from "@trpc/server";
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs';
 import { z } from "zod";
-import { imageServerAction } from "@/libs/edgestore/server";
+import { serverCaller } from "..";
+import { router, userProcedure } from "../../trpc";
 
 export const userRouter = router({
     createUser: userProcedure
@@ -13,7 +13,6 @@ export const userRouter = router({
             const { conn, models: { DB_user } } = ctx.conn
 
             const { username, email, password, avatar } = input
-            const { confirmImage } = imageServerAction('userAvatar')
 
             try {
                 const isUserExist = await DB_user.exists({ email: { $eq: email } })
@@ -31,7 +30,10 @@ export const userRouter = router({
                     avatar
                 })
 
-                await confirmImage(avatar.normal)
+                await serverCaller.edgestore.confirmImage({
+                    folder: 'userAvatar',
+                    url: avatar.normal
+                })
 
                 return 'ok'
             } catch (error) {
@@ -80,7 +82,6 @@ export const userRouter = router({
         .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn, models: { DB_user } } = ctx.conn
-            const { imageProcess } = imageServerAction('userAvatar')
 
             try {
                 const origin_user = await DB_user.findByIdAndUpdate(input._id, {
@@ -94,7 +95,13 @@ export const userRouter = router({
                     })
                 })
 
-                await imageProcess(origin_user.avatar.normal, input.avatar.normal)
+                await serverCaller.edgestore.imageProcess({
+                    folder: 'userAvatar',
+                    url: {
+                        before: origin_user.avatar.normal,
+                        after: input.avatar.normal
+                    }
+                })
 
                 return 'ok'
             } catch (error) {

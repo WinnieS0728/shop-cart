@@ -7,7 +7,7 @@ export default function AminTemplate({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
 
   return (
-    <main>
+    <>
       <nav className="flex items-center justify-center gap-4 p-4">
         <Link className="rounded-xl bg-yellow-500 px-4 py-2" href={"/admin"}>
           會員資料
@@ -36,6 +36,6 @@ export default function AminTemplate({ children }: { children: ReactNode }) {
         )}
       </nav>
       <section className="px-8">{children}</section>
-    </main>
+    </>
   );
 }

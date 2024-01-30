@@ -1,5 +1,5 @@
 "use client";
-import { useEdgeStore } from "@/libs/edgestore/client";
+import { useEdgeStore } from "@/providers/edgestore";
 import { cn } from "@/libs/utils/cn";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
@@ -7,7 +7,6 @@ import { useDropzone } from "react-dropzone";
 import { useController, useFormContext } from "react-hook-form";
 import { ProgressBar } from "../UI/progress bar";
 import * as icons from "@icons";
-import { useImageMethods } from "@/hooks/useImage";
 
 interface props {
   imageFolder: keyof ReturnType<typeof useEdgeStore>["edgestore"];

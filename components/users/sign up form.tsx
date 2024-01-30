@@ -1,19 +1,18 @@
 "use client";
-import React, { useRef } from "react";
-import FormContainer from "@UI/form";
-import { FormProvider, useForm } from "react-hook-form";
-import { Label, InputText, InputPassword, InputSubmit } from "@UI/inputs";
-import { z } from "zod";
 import { signUp_schema } from "@/libs/mongoDB/schemas/user";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Id, toast } from "react-toastify";
-import Link from "next/link";
-import { trpc } from "@/providers/trpc provider";
-import { useImageMethods } from "@/hooks/useImage";
-import { useRouter } from "next/navigation";
 import { updateToast } from "@/libs/toast";
-import ImgDropzone from "../UI/dropzone";
+import { trpc } from "@/providers/trpc provider";
+import FormContainer from "@UI/form";
+import { InputPassword, InputSubmit, InputText, Label } from "@UI/inputs";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { Id, toast } from "react-toastify";
+import { z } from "zod";
+import ImgDropzone from "../UI/dropzone";
 
 export default function SignUpForm() {
   const { mutate: createUser } = trpc.user.createUser.useMutation();

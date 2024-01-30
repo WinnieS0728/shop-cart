@@ -10,7 +10,7 @@ export default function MenuPage() {
         + add new product
       </Link>
       <section>
-        <ProductList />
+        <ProductList as="admin" />
       </section>
     </>
   );

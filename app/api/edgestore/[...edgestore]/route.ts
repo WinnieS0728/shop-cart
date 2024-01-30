@@ -1,3 +1,3 @@
-import { handler } from '@libs/edgestore/server'
+import { handler } from '@/libs/edgestore'
 
 export { handler as GET, handler as POST };

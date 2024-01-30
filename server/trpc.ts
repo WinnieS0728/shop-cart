@@ -1,3 +1,4 @@
+import { edgestoreServer } from '@/libs/edgestore'
 import { connectToMongo } from '@/libs/mongoDB/connect mongo'
 import { initTRPC } from '@trpc/server'
 import superjson from 'superjson'
@@ -36,6 +37,14 @@ export const productProcedure = t.procedure.use(({ next }) => {
     return next({
         ctx: {
             conn,
+        }
+    })
+})
+
+export const edgestoreProcedure = t.procedure.use(({ next }) => {
+    return next({
+        ctx: {
+            edgestoreServer
         }
     })
 })

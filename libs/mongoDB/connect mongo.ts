@@ -1,10 +1,10 @@
 import mongoose, { Connection, Model } from "mongoose";
-import { DB_schemaList } from "./schemas";
 import { z } from "zod";
-import { user_schema } from "./schemas/user";
+import { DB_schemaList } from "./schemas";
 import { category_schema } from "./schemas/basic setting/category";
 import { member_schema } from "./schemas/basic setting/member";
 import { tag_schema } from "./schemas/basic setting/tag";
+import { cart_schema } from "./schemas/cart";
 import { product_schema } from "./schemas/product";
 
 export const dbList = { users: "users", products: "products", basicSetting: "basicSetting" } as const
@@ -14,15 +14,9 @@ export const collectionList = {
     members: 'members',
     tags: 'tags',
     users: 'users',
-    products: 'products'
+    products: 'products',
+    cart: "cart"
 } as const
-
-export function connectToMongo(dbName: typeof dbList.users): {
-    conn: Connection,
-    models: {
-        DB_user: Model<z.infer<typeof user_schema>>
-    }
-}
 
 export function connectToMongo(dbName: typeof dbList.basicSetting): {
     conn: Connection,
@@ -36,6 +30,13 @@ export function connectToMongo(dbName: typeof dbList.products): {
     conn: Connection,
     models: {
         DB_product: Model<z.infer<typeof product_schema>>
+    }
+}
+export function connectToMongo(dbName: typeof dbList.users): {
+    conn: Connection,
+    models: {
+        DB_product: Model<z.infer<typeof product_schema>>
+        DB_cart: Model<z.infer<typeof cart_schema>>
     }
 }
 
@@ -54,7 +55,8 @@ export function connectToMongo(dbName: typeof dbList[keyof typeof dbList]) {
             DB_tag: conn.model(collectionList.tags, DB_schemaList.basicSetting.tags)
         },
         users: {
-            DB_user: conn.model(collectionList.users, DB_schemaList.users)
+            DB_user: conn.model(collectionList.users, DB_schemaList.users),
+            DB_cart: conn.model(collectionList.cart, DB_schemaList.cart)
         },
         products: {
             DB_product: conn.model(collectionList.products, DB_schemaList.products)

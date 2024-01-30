@@ -1,20 +1,18 @@
-import type { Metadata } from "next";
+import { EdgeStoreProvider } from "@/providers/edgestore";
 import SmoothScrollProvider from "@/providers/smooth scroll";
-import { EdgeStoreProvider } from "@/libs/edgestore/client";
-import { ToastContainer } from "react-toastify";
+import type { Metadata } from "next";
 import localFont from "next/font/local";
-import Header from "@/components/layouts/header";
-import ReactQueryProvider from "@/providers/react query";
+import { ToastContainer } from "react-toastify";
 
+import MySessionProvider from "@/providers/session";
+import { getServerSession } from "next-auth";
 import "react-loading-skeleton/dist/skeleton.css";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.scss";
-import { SessionProvider } from "next-auth/react";
-import MySessionProvider from "@/providers/session";
-import { getServerSession } from "next-auth";
 
-import TrpcProvider from "@/providers/trpc provider";
 import { authOptions } from "@/libs/next auth";
+import TrpcProvider from "@/providers/trpc provider";
+import Header from "@/components/layouts/header";
 
 const handWritingFont = localFont({
   src: "../public/fonts/ChenYuluoyan-Thin.woff2",
@@ -37,29 +35,28 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <SmoothScrollProvider>
-        <ReactQueryProvider>
-          <TrpcProvider>
-            <EdgeStoreProvider>
-              <MySessionProvider session={session}>
-                <body>
-                  {children}
-                  <ToastContainer
-                    position="top-center"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="colored"
-                  />
-                </body>
-              </MySessionProvider>
-            </EdgeStoreProvider>
-          </TrpcProvider>
-        </ReactQueryProvider>
+        <TrpcProvider>
+          <EdgeStoreProvider>
+            <MySessionProvider session={session}>
+              <body>
+                <Header />
+                <main>{children}</main>
+                <ToastContainer
+                  position="top-center"
+                  autoClose={3000}
+                  hideProgressBar={false}
+                  newestOnTop={false}
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="colored"
+                />
+              </body>
+            </MySessionProvider>
+          </EdgeStoreProvider>
+        </TrpcProvider>
       </SmoothScrollProvider>
     </html>
   );

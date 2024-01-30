@@ -1,10 +1,9 @@
-import { product_listSchema } from "@/libs/mongoDB/schemas/product";
-import { edgestoreServer, imageServerAction } from "@/libs/edgestore/server";
 import { connectToMongo } from "@/libs/mongoDB/connect mongo";
-import { product_schema } from "@/libs/mongoDB/schemas/product";
+import { product_listSchema, product_schema } from "@/libs/mongoDB/schemas/product";
 import { productProcedure, router } from "@/server/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { serverCaller } from "..";
 
 export const productRouter = router({
     getProductList: productProcedure
@@ -96,12 +95,14 @@ export const productRouter = router({
         .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn: productConnection, models: { DB_product } } = ctx.conn
-            const { confirmImage } = imageServerAction('productImage')
 
             try {
                 await DB_product.create(input)
 
-                await confirmImage(input.imageUrl.normal)
+                await serverCaller.edgestore.confirmImage({
+                    folder: 'productImage',
+                    url: input.imageUrl.normal
+                })
 
                 return 'ok'
             } catch (error) {
@@ -118,7 +119,6 @@ export const productRouter = router({
         .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn: productConnection, models: { DB_product } } = ctx.conn
-            const { imageProcess } = imageServerAction('productImage')
 
             try {
                 const origin_product = await DB_product.findByIdAndUpdate(input._id, {
@@ -133,7 +133,13 @@ export const productRouter = router({
                         })
                     })
 
-                await imageProcess(origin_product.imageUrl.normal, input.imageUrl.normal)
+                await serverCaller.edgestore.imageProcess({
+                    folder: 'productImage',
+                    url: {
+                        before: origin_product.imageUrl.normal,
+                        after: input.imageUrl.normal
+                    }
+                })
 
                 return 'ok'
             } catch (error) {
@@ -155,7 +161,6 @@ export const productRouter = router({
         .output(z.string())
         .mutation(async ({ input, ctx }) => {
             const { conn, models: { DB_product } } = ctx.conn
-            const { deleteImage } = imageServerAction('productImage')
 
             try {
                 const origin_product = await DB_product.findByIdAndDelete(input._id).lean().orFail(() => {
@@ -165,7 +170,10 @@ export const productRouter = router({
                     })
                 })
 
-                await deleteImage(origin_product.imageUrl.normal)
+                await serverCaller.edgestore.deleteImage({
+                    folder: 'productImage',
+                    url: origin_product.imageUrl.normal
+                })
 
                 return 'ok'
             } catch (error) {

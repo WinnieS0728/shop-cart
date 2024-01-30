@@ -41,7 +41,7 @@ export default function SignInForm() {
       updateToast(toastId.current, "success", {
         render: "登入成功 !",
       });
-      router.push("/admin");
+      router.replace("/admin");
     }
   }
   return (
