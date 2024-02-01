@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const shopping_schema = z.object({
     productId: z.union([z.string(), z.instanceof(Types.ObjectId)]),
-    quantity: z.number().positive()
+    quantity: z.number().nonnegative()
 })
 
 export const cart_schema = z.object({

@@ -1,6 +1,6 @@
 import React, { InputHTMLAttributes, ReactNode, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { eye } from "@icons";
+import { eye } from "@/components/icons";
 import { cn } from "@/libs/utils/cn";
 
 interface inputProps extends InputHTMLAttributes<HTMLInputElement> {

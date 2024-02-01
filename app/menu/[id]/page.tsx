@@ -1,6 +1,4 @@
-import ProductDetail from "@/components/products/product detail";
-import { JSON_serialize } from "@/libs/utils/serialize";
-import { serverCaller } from "@/server/routers";
+import Product from "@/components/products/product";
 import React from "react";
 
 interface props {
@@ -10,12 +8,11 @@ interface props {
 }
 
 export default async function productDetailPage({ params: { id } }: props) {
-  const product = await serverCaller.product.getProductById({
-    _id: id,
-  });
   return (
     <>
-      <ProductDetail initData={JSON_serialize(product)} />
+      <section className="p-4">
+        <Product productId={id} />
+      </section>
     </>
   );
 }

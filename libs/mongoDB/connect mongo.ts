@@ -6,6 +6,7 @@ import { member_schema } from "./schemas/basic setting/member";
 import { tag_schema } from "./schemas/basic setting/tag";
 import { cart_schema } from "./schemas/cart";
 import { product_schema } from "./schemas/product";
+import { user_schema } from "./schemas/user";
 
 export const dbList = { users: "users", products: "products", basicSetting: "basicSetting" } as const
 
@@ -35,7 +36,7 @@ export function connectToMongo(dbName: typeof dbList.products): {
 export function connectToMongo(dbName: typeof dbList.users): {
     conn: Connection,
     models: {
-        DB_product: Model<z.infer<typeof product_schema>>
+        DB_user: Model<z.infer<typeof user_schema>>
         DB_cart: Model<z.infer<typeof cart_schema>>
     }
 }

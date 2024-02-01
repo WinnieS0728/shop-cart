@@ -1,6 +1,6 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect } from "react";
-import * as icons from "@icons";
+import * as icons from "@/components/icons";
 
 interface props {
   progress: number;

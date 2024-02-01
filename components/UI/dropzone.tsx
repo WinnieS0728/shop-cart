@@ -6,7 +6,7 @@ import React, { useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useController, useFormContext } from "react-hook-form";
 import { ProgressBar } from "../UI/progress bar";
-import * as icons from "@icons";
+import * as icons from "@/components/icons";
 
 interface props {
   imageFolder: keyof ReturnType<typeof useEdgeStore>["edgestore"];

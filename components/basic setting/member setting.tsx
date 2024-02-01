@@ -4,7 +4,7 @@ import React, { Fragment, useRef } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { InputOnlyNumber, InputSubmit, InputText, Label } from "@UI/inputs";
-import * as icons from "@icons";
+import * as icons from "@/components/icons";
 import FormContainer from "@UI/form";
 import { Id, toast } from "react-toastify";
 import { member_schema } from "@/libs/mongoDB/schemas/basic setting/member";

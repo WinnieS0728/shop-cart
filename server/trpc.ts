@@ -23,7 +23,14 @@ export const userProcedure = t.procedure.use(({ next }) => {
         }
     })
 })
-
+export const cartProcedure = t.procedure.use(({ next }) => {
+    const conn = connectToMongo('users')
+    return next({
+        ctx: {
+            conn
+        }
+    })
+})
 export const basicSettingProcedure = t.procedure.use(({ next }) => {
     const conn = connectToMongo('basicSetting')
     return next({
