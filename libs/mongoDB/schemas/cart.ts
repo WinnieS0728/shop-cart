@@ -8,28 +8,27 @@ export const shopping_schema = z.object({
 
 export const cart_schema = z.object({
     _id: z.union([z.string(), z.instanceof(Types.ObjectId)]),
-    order_from: z.union([z.string(), z.instanceof(Types.ObjectId)]),
     items: z.array(shopping_schema)
 })
 
-
-
 const DB_cart_schema = new Schema<z.infer<typeof cart_schema>>({
-    order_from: Schema.Types.ObjectId,
-    items: [{
-        productId: {
-            type: Schema.Types.ObjectId,
-            required: true
-        },
-        quantity: {
-            type: Number,
-            required: true,
-            validate: {
-                validator: (value: number) => value >= 0,
-                message: '購物數量不可小於 0'
+    items: {
+        type: [{
+            productId: {
+                type: Schema.Types.ObjectId,
+                required: true
+            },
+            quantity: {
+                type: Number,
+                required: true,
+                validate: {
+                    validator: (value: number) => value >= 0,
+                    message: '購物數量不可小於 0'
+                }
             }
-        }
-    }],
+        }],
+        default: []
+    },
 }, {
     timestamps: true,
 })

@@ -2,11 +2,14 @@
 import { shopping_schema } from "@/libs/mongoDB/schemas/cart";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Types } from "mongoose";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import FormContainer from "../UI/form";
 import { InputOnlyNumber, InputSubmit } from "../UI/inputs";
+import { trpc } from "@/providers/trpc provider";
+import { Id, toast } from "react-toastify";
+import { updateToast } from "@/libs/toast";
 
 interface props {
   productId: string;
@@ -18,6 +21,9 @@ export default function ShoppingForm({ productId }: props) {
   const [submitType, setSubmitType] = useState<submitType | undefined>(
     undefined,
   );
+
+  const { mutate: addItemToCart } = trpc.cart.addItemToCart.useMutation();
+
   const methods = useForm<z.infer<typeof shopping_schema>>({
     resolver: zodResolver(shopping_schema),
     defaultValues: {
@@ -28,11 +34,33 @@ export default function ShoppingForm({ productId }: props) {
 
   const { handleSubmit, setValue, getValues } = methods;
 
+  const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof shopping_schema>) {
-    console.log(submitType);
+    // console.log(submitType);
     console.log(data);
+
     if (data.quantity === 0) {
       return;
+    }
+
+    toastId.current = toast.loading("處理中...");
+
+    addItemToCart(data, {
+      onError(error) {
+        updateToast(toastId.current, "error", {
+          render: error.message,
+        });
+      },
+      onSuccess() {
+        updateToast(toastId.current, "success", {
+          render: "成功 !",
+        });
+      },
+    });
+
+    if (submitType === "justBuy") {
+      // @ redirect
+      console.log("redirect to order confirm page");
     }
   }
   return (

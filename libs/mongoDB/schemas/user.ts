@@ -61,7 +61,7 @@ export const user_schema = z.object({
 
     }),
     consumption: z.number().min(0, '最低消費金額是 0'),
-    role: z.enum(['admin', 'user']).default('user')
+    role: z.enum(['admin', 'user']).default('user'),
 })
 
 export const signIn_schema = user_schema.pick({
@@ -167,7 +167,7 @@ const DB_user_schema = new Schema<z.infer<typeof user_schema>>({
     role: {
         type: String,
         default: 'user'
-    }
+    },
 }, {
     timestamps: true,
 })

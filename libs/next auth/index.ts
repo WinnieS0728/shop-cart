@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs'
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { JWT } from "next-auth/jwt"
+import { cookies } from "next/headers"
 
 export const authOptions = {
     secret: process.env.NEXTAUTH_SECRET,
@@ -58,14 +59,15 @@ export const authOptions = {
     callbacks: {
         async signIn({ user }) {
             const { conn, models: { DB_user } } = connectToMongo('users')
+            const cookieStore = cookies()
             try {
-                const isUserExist = !!(await DB_user.exists({
+                const user_inDB = await DB_user.exists({
                     email: {
                         $eq: user.email
                     }
-                }))
-                if (!isUserExist) {
-                    await DB_user.create({
+                })
+                if (!user_inDB) {
+                    const createUser = await DB_user.create({
                         username: user.name,
                         email: user.email,
                         avatar: {
@@ -73,6 +75,11 @@ export const authOptions = {
                             thumbnail: user.image
                         },
                     })
+                    cookieStore.set('cartId', createUser._id.toString())
+                } else if (user_inDB._id) {
+                    cookieStore.set('cartId', user_inDB._id.toString())
+                } else {
+                    cookieStore.delete('cartId')
                 }
                 return true
             } catch (error) {

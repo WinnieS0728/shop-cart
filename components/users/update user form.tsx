@@ -1,18 +1,19 @@
 "use client";
-import React, { ReactNode, useRef } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { InputSubmit, InputText, Label } from "@UI/inputs";
 import { user_schema } from "@/libs/mongoDB/schemas/user";
-import { z } from "zod";
+import { updateToast } from "@/libs/toast";
+import { trpc } from "@/providers/trpc provider";
 import { CreditCard } from "@UI/credit card";
-import { zodResolver } from "@hookform/resolvers/zod";
 import FormContainer from "@UI/form";
+import { InputSubmit, InputText, Label } from "@UI/inputs";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { ReactNode, useRef } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { Id, toast } from "react-toastify";
-import { trpc } from "@/providers/trpc provider";
-import { updateToast } from "@/libs/toast";
+import { z } from "zod";
 import ImgDropzone from "../UI/dropzone";
+import Cookies from "js-cookie";
 
 interface props {
   email: string;
@@ -114,7 +115,8 @@ export default function UpdateUserForm({
         <div className="flex items-center justify-center p-4">
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
+              Cookies.remove("cartId");
               signOut();
             }}
             className="button bg-red-500"
