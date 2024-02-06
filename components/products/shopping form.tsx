@@ -37,7 +37,6 @@ export default function ShoppingForm({ productId }: props) {
   const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof shopping_schema>) {
     // console.log(submitType);
-    console.log(data);
 
     if (data.quantity === 0) {
       return;
@@ -52,6 +51,7 @@ export default function ShoppingForm({ productId }: props) {
         });
       },
       onSuccess() {
+        setValue("quantity", 0);
         updateToast(toastId.current, "success", {
           render: "成功 !",
         });
