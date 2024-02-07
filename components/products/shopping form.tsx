@@ -10,6 +10,7 @@ import { InputOnlyNumber, InputSubmit } from "../UI/inputs";
 import { trpc } from "@/providers/trpc provider";
 import { Id, toast } from "react-toastify";
 import { updateToast } from "@/libs/toast";
+import Counter from "../UI/counter";
 
 interface props {
   productId: string;
@@ -27,7 +28,7 @@ export default function ShoppingForm({ productId }: props) {
   const methods = useForm<z.infer<typeof shopping_schema>>({
     resolver: zodResolver(shopping_schema),
     defaultValues: {
-      productId: new Types.ObjectId(productId),
+      product: new Types.ObjectId(productId),
       quantity: 0,
     },
   });
@@ -59,7 +60,7 @@ export default function ShoppingForm({ productId }: props) {
     });
 
     if (submitType === "justBuy") {
-      // @ redirect
+      // TODO redirect
       console.log("redirect to order confirm page");
     }
   }
@@ -70,32 +71,7 @@ export default function ShoppingForm({ productId }: props) {
           onSubmit={handleSubmit(onSubmit)}
           className="grid justify-center border-0 p-0"
         >
-          <div className="grid w-60 grid-cols-3 place-items-center p-4">
-            <button
-              type="button"
-              className="circle-icon w-8 border"
-              onClick={() => {
-                if (getValues("quantity") === 0) {
-                  return;
-                }
-                const newNumber = getValues("quantity") - 1;
-                setValue("quantity", newNumber);
-              }}
-            >
-              -
-            </button>
-            <InputOnlyNumber name="quantity" className="border-0 text-center" />
-            <button
-              type="button"
-              className="circle-icon w-8 border"
-              onClick={() => {
-                const newNumber = getValues("quantity") + 1;
-                setValue("quantity", newNumber);
-              }}
-            >
-              +
-            </button>
-          </div>
+          <Counter name="quantity" />
           <div className="grid grid-cols-2 gap-4">
             <InputSubmit
               onClick={() => {

@@ -79,7 +79,7 @@ export default function MemberSetting({ initData }: props) {
 
   const toastId = useRef<Id>("");
   async function onSubmit(data: z.infer<typeof member_formSchema>) {
-    console.log(data);
+    // console.log(data);
     toastId.current = toast.loading("儲存中...");
     updateMember(data.member, {
       onError(error) {

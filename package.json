@@ -43,6 +43,7 @@
     "sharp": "^0.33.1",
     "superjson": "^2.2.1",
     "three": "^0.159.0",
+    "usehooks-ts": "^2.13.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

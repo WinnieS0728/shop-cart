@@ -1,8 +1,9 @@
 import { Schema, Types } from "mongoose";
 import { z } from "zod";
+import { product_listSchema } from "./product";
 
 export const shopping_schema = z.object({
-    productId: z.union([z.string(), z.instanceof(Types.ObjectId)]),
+    product: z.union([z.string(), z.instanceof(Types.ObjectId)]),
     quantity: z.number().nonnegative()
 })
 
@@ -11,8 +12,17 @@ export const cart_schema = z.object({
     items: z.array(shopping_schema)
 })
 
+export const cartItem_schema = shopping_schema.merge(z.object({
+    product: product_listSchema.pick({
+        _id: true,
+        title: true,
+        price: true,
+        imageUrl: true
+    })
+}))
+
 const DB_item_schema = new Schema<z.infer<typeof shopping_schema>>({
-    productId: {
+    product: {
         type: Schema.Types.ObjectId,
         required: true
     },

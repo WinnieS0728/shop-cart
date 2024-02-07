@@ -101,7 +101,7 @@ export default function ProductForm({
   }
 
   async function onCreate(data: z.infer<typeof product_schema>) {
-    console.log(data);
+    // console.log(data);
     toastId.current = toast.loading("建立中...");
     createProduct(data, {
       onError(error) {
@@ -119,7 +119,7 @@ export default function ProductForm({
   }
 
   async function onUpdate(data: z.infer<typeof product_schema>) {
-    console.log(data);
+    // console.log(data);
     toastId.current = toast.loading("更新中...");
     updateProduct(data, {
       onError(error) {
