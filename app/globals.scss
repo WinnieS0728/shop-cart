@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  // font-size: 1.5rem
+}
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+main {
+  margin-bottom: 3rem;
+}
+
+@layer base {
+  input {
+    @apply w-full rounded-sm border px-3 py-2;
+
+    &[readonly] {
+      @apply bg-gray-200 focus-visible:outline-0;
+    }
+  }
+}
+
+@layer utilities {
+  .button {
+    @apply cursor-pointer rounded-md px-4 py-2;
+  }
+  .circle-icon {
+    @apply flex aspect-square items-center justify-center rounded-full;
+  }
+
+  .add-new-btn {
+    @apply w-full border border-dashed border-yellow-500 px-4 py-2;
+  }
+}
