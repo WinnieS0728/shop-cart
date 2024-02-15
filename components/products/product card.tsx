@@ -1,7 +1,5 @@
 import { product_listSchema } from "@/libs/mongoDB/schemas/product";
 import Image from "next/image";
-import Link from "next/link";
-import React from "react";
 import { z } from "zod";
 
 interface props {

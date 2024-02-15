@@ -16,7 +16,7 @@ export default async function Product({ productId }: props) {
   return (
     <>
       <section className="grid gap-4">
-        <section className="grid gap-2">
+        <section className="grid gap-2 sm:grid-cols-[auto_1fr]">
           <Image
             src={product.imageUrl.normal}
             alt={`product-${product.title} image`}

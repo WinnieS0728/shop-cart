@@ -4,6 +4,11 @@ import { FaRegEye } from "react-icons/fa6";
 import { FaRegEyeSlash } from "react-icons/fa6";
 import { TbTrashXFilled } from "react-icons/tb";
 import { IoClose } from "react-icons/io5";
+import { RiShoppingCartLine } from "react-icons/ri";
+import { LuCakeSlice } from "react-icons/lu";
+import { MdRestaurantMenu } from "react-icons/md";
+import { LuMail } from "react-icons/lu";
+import { FaRegUser } from "react-icons/fa";
 
 export function Check(props: HTMLAttributes<SVGAElement>) {
   return <FaCircleCheck {...props} />;
@@ -27,4 +32,19 @@ export function Trash(props: HTMLAttributes<SVGAElement>) {
 
 export function Close(props: HTMLAttributes<SVGAElement>) {
   return <IoClose {...props} />;
+}
+export function Cart(props: HTMLAttributes<SVGAElement>) {
+  return <RiShoppingCartLine {...props} />;
+}
+export function Logo(props: HTMLAttributes<SVGAElement>) {
+  return <LuCakeSlice {...props} />;
+}
+export function Menu(props: HTMLAttributes<SVGAElement>) {
+  return <MdRestaurantMenu {...props} />;
+}
+export function Contact(props: HTMLAttributes<SVGAElement>) {
+  return <LuMail {...props} />;
+}
+export function User(props: HTMLAttributes<SVGAElement>) {
+  return <FaRegUser {...props} />;
 }
