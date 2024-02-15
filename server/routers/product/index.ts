@@ -90,6 +90,41 @@ export const productRouter = router({
                 await basicSettingConnection.close()
             }
         }),
+    getTop3: productProcedure
+        .output(z.array(product_listSchema))
+        .use(({ next }) => {
+            const conn2 = connectToMongo('basicSetting')
+            return next({
+                ctx: {
+                    conn2
+                }
+            })
+        })
+        .query(async ({ ctx }) => {
+            const { conn: productConnection, models: { DB_product } } = ctx.conn
+            const { conn: settingConnection, models: { DB_category, DB_tag } } = ctx.conn2
+            try {
+                const top3 = await DB_product.find()
+                    .sort({
+                        sold: 'desc'
+                    })
+                    .limit(3)
+                    .populate<Pick<z.infer<typeof product_listSchema>, 'categories'>>('categories', 'title', DB_category)
+                    .populate<Pick<z.infer<typeof product_listSchema>, 'tags'>>('tags', 'title', DB_tag)
+                    .lean()
+
+                return top3
+
+            } catch (error) {
+                throw new TRPCError({
+                    code: 'INTERNAL_SERVER_ERROR',
+                    cause: error
+                })
+            } finally {
+                await productConnection.close()
+                await settingConnection.close()
+            }
+        }),
     createProduct: productProcedure
         .input(product_schema)
         .output(z.string())
